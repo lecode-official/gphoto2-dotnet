@@ -84,13 +84,20 @@ namespace System.Devices
 						string line;
 						while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
 						{
+							// Trims the line, because it might have leading or trailing whitespaces (the regular expression would be more complex with them)
+							line = line.Trim();
+
 							// The line contains the name of the camera and its port separated by multiple whitespaces, this regular expression is used to split them
-							Regex splitRegex = new Regex("\\s\\s+");
+							Regex cameraAndPortRegex = new Regex("^(?<Name>((\\S\\s\\S)|\\S)+)\\s\\s+(?<Port>((\\S\\s\\S)|\\S)+)$");
 
 							// Reads the name and the port of the camera
-							string[] tableRow = splitRegex.Split(line);
-							string cameraName = tableRow[0].Trim();
-							string cameraPort = tableRow[1].Trim();
+							Match match = cameraAndPortRegex.Match(line);
+							string cameraName = match.Groups["Name"].Value;
+							string cameraPort = match.Groups["Port"].Value;
+
+							// If either the camera name or the port is null or whitespace, then the camera could not be matched
+							if (string.IsNullOrWhiteSpace(cameraName) || string.IsNullOrWhiteSpace(cameraPort))
+								continue;
 
 							// Creates the new camera and adds it to the result set
 							Camera camera = new Camera();
