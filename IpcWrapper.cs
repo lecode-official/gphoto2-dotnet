@@ -80,6 +80,7 @@ namespace System.Devices
 		/// <summary>
 		/// Executes the process and parses its output.
 		/// </summary>
+		/// <typeparam name="T">The type of the result of the parser.</typeparam>
 		/// <param name="commandLineParameters">The command line paramters, which are passed to the process.</param>
 		/// <param name="parser">A delegate that is used to parse the output of the process.</param>
 		/// <returns>Returns the result of the parser.</returns>
@@ -90,6 +91,20 @@ namespace System.Devices
 
 			// Parses the output of the process and returns the parsed object
 			return await parser(processOutput);
+		}
+
+		/// <summary>
+		/// Executes the process and parses its output.
+		/// </summary>
+		/// <param name="commandLineParameters">The command line paramters, which are passed to the process.</param>
+		/// <param name="parser">A delegate that is used to parse the output of the process.</param>
+		public async Task ExecuteAsync(string commandLineParameters, Func<string, Task> parser)
+		{
+			// Executes the process in order to get it's output
+			string processOutput = await this.ExecuteAsync(commandLineParameters);
+
+			// Parses the output of the process
+			await parser(processOutput);
 		}
 
 		#endregion
