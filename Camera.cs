@@ -32,7 +32,7 @@ namespace System.Devices
 		/// <summary>
 		/// Contains the IPC wrapper, which is used to interface with gPhoto2.
 		/// </summary>
-		private IpcWrapper ipcWrapper = new IpcWrapper("gphoto2");
+		private IpcWrapper ipcWrapper = new IpcWrapper("gphoto2", CultureInfo.CreateSpecificCulture("en-US"));
 		
 		/// <summary>
 		/// Contains a list of all the settings of the camera.
@@ -62,11 +62,26 @@ namespace System.Devices
 		/// Gets a value that determines whether the camera has the ability to capture images.
 		/// </summary>
 		public bool CanCaptureImages { get; private set; }
+
+		/// <summary>
+		/// Gets a value that determines whether the camera has the ability to caputre preview images.
+		/// </summary>
+		public bool CanCapturePreviews { get; private set; }
 		
 		/// <summary>
 		/// Gets a value that determines whether the camera has the ability to delete files from the camera.
 		/// </summary>
 		public bool CanDeleteFiles { get; private set; }
+		
+		/// <summary>
+		/// Gets a value that determines whether the camera has the ability to delete all files from the camera.
+		/// </summary>
+		public bool CanDeleteAllFiles { get; private set; }
+		
+		/// <summary>
+		/// Gets a value that determines whether the camera has the ability to preview files (thumbnails).
+		/// </summary>
+		public bool CanPreviewFiles { get; private set; }
 		
 		/// <summary>
 		/// Gets a value that determines whether the camera has the ability to upload files to the camera.
@@ -125,14 +140,19 @@ namespace System.Devices
     						}
     						
     						// Processes the abilities, by reading out the values and storing them
-    						if (abilities.ContainsKey("AUFNAHME MACHEN (AUSWAHL)") && abilities["AUFNAHME MACHEN (AUSWAHL)"].Contains("BILD"))
+    						if (abilities.ContainsKey("CAPTURE CHOICES") && abilities["CAPTURE CHOICES"].Contains("IMAGE"))
         						this.CanCaptureImages = true;
-        					if (abilities.ContainsKey("KONFIGURATIONSUNTERSTÜTZUNG") && abilities["KONFIGURATIONSUNTERSTÜTZUNG"].Contains("JA"))
+    						if (abilities.ContainsKey("CAPTURE CHOICES") && abilities["CAPTURE CHOICES"].Contains("PREVIEW"))
+        						this.CanCapturePreviews = true;
+        					if (abilities.ContainsKey("CONFIGURATION SUPPORT") && abilities["CONFIGURATION SUPPORT"].Contains("YES"))
             					this.CanBeConfigured = true;
-        					if (abilities.ContainsKey("UNTERSTÜTZUNG FÜR DAS LÖSCHEN EINZELNER BILDER") &&
-        					    abilities["UNTERSTÜTZUNG FÜR DAS LÖSCHEN EINZELNER BILDER"].Contains("JA"))
-                					this.CanDeleteFiles = true;
-        					if (abilities.ContainsKey("UNTERSTÜTZUNG FÜR BILDHOCHLADEN") && abilities["UNTERSTÜTZUNG FÜR BILDHOCHLADEN"].Contains("JA"))
+        					if (abilities.ContainsKey("DELETE SELECTED FILES ON CAMERA") && abilities["DELETE SELECTED FILES ON CAMERA"].Contains("YES"))
+            					this.CanDeleteFiles = true;
+        					if (abilities.ContainsKey("DELETE ALL FILES ON CAMERA") && abilities["DELETE ALL FILES ON CAMERA"].Contains("YES"))
+            					this.CanDeleteAllFiles = true;
+        					if (abilities.ContainsKey("FILE PREVIEW (THUMBNAIL) SUPPORT") && abilities["FILE PREVIEW (THUMBNAIL) SUPPORT"].Contains("YES"))
+            					this.CanPreviewFiles = true;
+        					if (abilities.ContainsKey("FILE UPLOAD SUPPORT") && abilities["FILE UPLOAD SUPPORT"].Contains("YES"))
             					this.CanUploadFiles = true;
 					    }
 					    
@@ -156,7 +176,7 @@ namespace System.Devices
 		public static async Task<IReadOnlyCollection<Camera>> GetCamerasAsync()
 		{
 		    // Creates a new IPC wrapper, which can be used to interface with gPhoto2
-		    IpcWrapper ipcWrapper = new IpcWrapper("gphoto2");
+		    IpcWrapper ipcWrapper = new IpcWrapper("gphoto2", CultureInfo.CreateSpecificCulture("en-US"));
 		    
 			// Gets all the cameras attached to the computer and returns them
 			return await ipcWrapper.ExecuteAsync("--auto-detect", async output =>
@@ -204,4 +224,4 @@ namespace System.Devices
 
 		#endregion
 	}
-} 
+}

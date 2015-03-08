@@ -9,11 +9,11 @@ using System.Runtime.InteropServices;
 
 #region General Assembly Information
 
-[assembly: AssemblyTitle("gPhotoSharp")]
+[assembly: AssemblyTitle("gPhoto2.NET")]
 [assembly: AssemblyDescription("A gPhoto2 wrapper for C#.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("LeCode")]
-[assembly: AssemblyProduct("gPhotoSharp")]
+[assembly: AssemblyProduct("gPhoto2.NET")]
 [assembly: AssemblyCopyright("Copyright © David Neumann 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 
 #region Assembly Version Information
 
-[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 #endregion

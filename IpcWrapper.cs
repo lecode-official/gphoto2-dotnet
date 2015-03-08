@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,10 +21,28 @@ namespace System.Devices
 		/// <summary>
 		/// Initializes a new <see cref="IpcWrapper" /> instance.
 		/// </summary>
-		/// <param name="programFileName">The file name of the program to which the <see cref="IpcWrapper" /> should establish a connection.</param>
-		public IpcWrapper(string programFileName)
+		/// <param name="programFileName">
+		/// The file name of the program to which the <see cref="IpcWrapper" /> should establish a connection.
+		/// </param>
+		/// <param name="culture">
+		/// The culture in which the application is to be started (this can be helpful when parsing the output of the application,
+		/// because sometimes it can get hard to parse the output if the language is unknown).
+		/// </param>
+		public IpcWrapper(string programFileName, CultureInfo culture)
 		{
 			this.ProgramFileName = programFileName;
+			this.Culture = culture;
+		}
+
+		/// <summary>
+		/// Initializes a new <see cref="IpcWrapper" /> instance.
+		/// </summary>
+		/// <param name="programFileName">
+		/// The file name of the program to which the <see cref="IpcWrapper" /> should establish a connection.
+		/// </param>
+		public IpcWrapper(string programFileName)
+			: this(programFileName, CultureInfo.CurrentCulture)
+		{
 		}
 
 		#endregion
@@ -34,6 +53,12 @@ namespace System.Devices
 		/// Gets or sets the file name of the program to which the <see cref="IpcWrapper" /> should establish a connection.
 		/// </summary>
 		public string ProgramFileName { get; set; }
+
+		/// <summary>
+		/// Gets or sets the culture in which the application is to be started (this can be helpful when parsing the output of the
+		/// application, because sometimes it can get hard to parse the output if the language is unknown).
+		/// </summary>
+		public CultureInfo Culture { get; set; }
 
 		#endregion
 
@@ -58,8 +83,15 @@ namespace System.Devices
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
 					RedirectStandardInput = true,
-					StandardOutputEncoding = Encoding.UTF8
+					StandardOutputEncoding = Encoding.UTF8,
 				};
+
+				// Sets the language in which the application is to be started
+				string languageValue = string.Format(CultureInfo.InvariantCulture, "{0}.UTF-8", this.Culture.Name.Replace("-", "_"));
+				if (processStartInfo.EnvironmentVariables.ContainsKey("LANG"))
+					processStartInfo.EnvironmentVariables["LANG"] = languageValue;
+				else
+					processStartInfo.EnvironmentVariables.Add("LAND", languageValue);
 
 				// Starts the process
 				Process process = new Process();
