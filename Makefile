@@ -3,7 +3,7 @@
 OUTPUTDIRECTORY           = Build
 
 # Contains the input files for the gPhotoSharp library
-GPHOTOSHARPINPUTFILES     = Camera.cs IpcWrapper.cs AssemblyInfo.cs
+GPHOTOSHARPINPUTFILES     = Camera.cs CameraSetting.cs CameraSettingType.cs IpcWrapper.cs AssemblyInfo.cs
 
 # Contains the input files for the gPhotoShart library test application
 TESTAPPLICATIONINPUTFILES = TestProgram.cs

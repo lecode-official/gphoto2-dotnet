@@ -34,9 +34,24 @@ namespace System.Devices
 		/// </summary>
 		private IpcWrapper ipcWrapper = new IpcWrapper("gphoto2");
 		
+		/// <summary>
+		/// Contains a list of all the settings of the camera.
+		/// </summary>
+		private IReadOnlyCollection<CameraSetting> settings;
+		
 		#endregion
 
 		#region Public Properties
+
+		/// <summary>
+		/// Gets the name of the camera.
+		/// </summary>
+		public string Name { get; private set; }
+
+		/// <summary>
+		/// Gets the port with which the camera is connected to the machine.
+		/// </summary>
+		public string Port { get; private set; }
 
 		/// <summary>
 		/// Gets a value that determines whether the camera has the ability to be configured, i.e. the values of settings can be read and set.
@@ -58,26 +73,16 @@ namespace System.Devices
 		/// </summary>
 		public bool CanUploadFiles { get; private set; }
 		
-		/// <summary>
-		/// Gets the name of the camera.
-		/// </summary>
-		public string Name { get; private set; }
-
-		/// <summary>
-		/// Gets the port to which the camera is attached to.
-		/// </summary>
-		public string Port { get; private set; }
-
 		#endregion
 
-		#region Internal Methods
+		#region Private Methods
 
 		/// <summary>
-		/// Initializes the camera.
+		/// Initializes a new camera (this is the internal factory method for instantiating new cameras).
 		/// </summary>
 		/// <param name="name">The name of the camera.</param>
-		/// <param name="port">The port to which the camera is attached to.</param>
-		internal async Task InitializeAsync(string name, string port)
+		/// <param name="port">The port with which the camera is connected to the machine.</param>
+		private async Task InitializeAsync(string name, string port)
 		{
 			// Stores the initial information about the camera for later use
 			this.Name = name;
@@ -135,6 +140,9 @@ namespace System.Devices
         				return Task.FromResult(0);
 					}
 			    });
+			    
+			// Gets all of the settings of the camera
+			this.settings = await CameraSetting.GetCameraSettingsAsync(this.Name, this.Port, this.ipcWrapper);
 		}
 
 		#endregion
@@ -142,9 +150,9 @@ namespace System.Devices
 		#region Public Static Methods
 
 		/// <summary>
-		/// Intializes a new <see cref="Camera" /> instance. The constructor is made private, so that the factory pattern, which is used to instantiate new instances
-		/// of <see cref="Camera" />, can be enforced.
+		/// Iterates all cameras attached to the system and initializes them.
 		/// </summary>
+		/// <returns>Returns a read-only list of all cameras attached to the system.</returns>
 		public static async Task<IReadOnlyCollection<Camera>> GetCamerasAsync()
 		{
 		    // Creates a new IPC wrapper, which can be used to interface with gPhoto2
@@ -163,15 +171,15 @@ namespace System.Devices
 						stringReader.ReadLine();
 						stringReader.ReadLine();
 
+						// The line contains the name of the camera and its port separated by multiple whitespaces, this regular expression is used to split them
+						Regex cameraAndPortRegex = new Regex("^(?<Name>((\\S\\s\\S)|\\S)+)\\s\\s+(?<Port>((\\S\\s\\S)|\\S)+)$");
+
 						// Cycles over the rest of the lines (each line representes a row in the table containing the cameras)
 						string line;
 						while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
 						{
 							// Trims the line, because it might have leading or trailing whitespaces (the regular expression would be more complex with them)
 							line = line.Trim();
-
-							// The line contains the name of the camera and its port separated by multiple whitespaces, this regular expression is used to split them
-							Regex cameraAndPortRegex = new Regex("^(?<Name>((\\S\\s\\S)|\\S)+)\\s\\s+(?<Port>((\\S\\s\\S)|\\S)+)$");
 
 							// Reads the name and the port of the camera
 							Match match = cameraAndPortRegex.Match(line);
