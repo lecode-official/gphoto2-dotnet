@@ -4,7 +4,7 @@ namespace System.Devices
     /// <summary>
     /// Represents an enumeration for the data type of a setting (e.g. text or option).
     /// </summary>
-    internal enum CameraSettingType
+    public enum CameraSettingType
     {
         /// <summary>
         /// Represents a setting type that is unkwnon to the software.

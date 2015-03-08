@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -20,10 +21,17 @@ namespace System.Devices
 		#region Constructors
 
 		/// <summary>
-		/// Intializes a new <see cref="Camera" /> instance. The constructor is made private, so that the factory pattern, which is used to instantiate new instances
-		/// of <see cref="Camera" />, can be enforced.
+		/// Intializes a new <see cref="Camera" /> instance. The constructor is made private, so that the factory pattern, which is
+		/// used to instantiate new instances of <see cref="Camera" />, can be enforced.
 		/// </summary>
-		private Camera() { }
+		/// <param name="name">The name of the camera.</param>
+		/// <param name="port">The port with which the camera is connected to the machine.</param>
+		private Camera(string name, string port)
+		{
+			// Stores the initial information about the camera for later use
+			this.Name = name;
+			this.Port = port;
+		}
 
 		#endregion
 		
@@ -33,11 +41,6 @@ namespace System.Devices
 		/// Contains the IPC wrapper, which is used to interface with gPhoto2.
 		/// </summary>
 		private IpcWrapper ipcWrapper = new IpcWrapper("gphoto2", CultureInfo.CreateSpecificCulture("en-US"));
-		
-		/// <summary>
-		/// Contains a list of all the settings of the camera.
-		/// </summary>
-		private IReadOnlyCollection<CameraSetting> settings;
 		
 		#endregion
 
@@ -88,6 +91,11 @@ namespace System.Devices
 		/// </summary>
 		public bool CanUploadFiles { get; private set; }
 		
+		/// <summary>
+		/// Gets a list of all the settings of the camera.
+		/// </summary>
+		public IReadOnlyCollection<CameraSetting> Settings { get; private set; }
+		
 		#endregion
 
 		#region Private Methods
@@ -95,14 +103,8 @@ namespace System.Devices
 		/// <summary>
 		/// Initializes a new camera (this is the internal factory method for instantiating new cameras).
 		/// </summary>
-		/// <param name="name">The name of the camera.</param>
-		/// <param name="port">The port with which the camera is connected to the machine.</param>
-		private async Task InitializeAsync(string name, string port)
+		private async Task InitializeAsync()
 		{
-			// Stores the initial information about the camera for later use
-			this.Name = name;
-			this.Port = port;
-
 			// Gets the abilities of the camera, so that we know which actions can be executed
 			await this.ipcWrapper.ExecuteAsync(string.Format(CultureInfo.InvariantCulture, "--abilities --camera \"{0}\" --port \"{1}\"", this.Name, this.Port),
 			    output =>
@@ -160,9 +162,14 @@ namespace System.Devices
         				return Task.FromResult(0);
 					}
 			    });
+
+			// Sets the camera name and its port as standard command line parameters, so that they do not have to be stated over and
+			// over again explictly
+			this.ipcWrapper.StandardCommandLineParameters = string.Format(CultureInfo.InvariantCulture,
+				"--camera \"{0}\" --port \"{1}\"", this.Name, this.Port);
 			    
 			// Gets all of the settings of the camera
-			this.settings = await CameraSetting.GetCameraSettingsAsync(this.Name, this.Port, this.ipcWrapper);
+			this.Settings = await CameraSetting.GetCameraSettingsAsync(this.ipcWrapper);
 		}
 
 		#endregion
@@ -178,8 +185,8 @@ namespace System.Devices
 		    // Creates a new IPC wrapper, which can be used to interface with gPhoto2
 		    IpcWrapper ipcWrapper = new IpcWrapper("gphoto2", CultureInfo.CreateSpecificCulture("en-US"));
 		    
-			// Gets all the cameras attached to the computer and returns them
-			return await ipcWrapper.ExecuteAsync("--auto-detect", async output =>
+			// Gets all the cameras attached to the computer
+			List<Camera> createdCameras = await ipcWrapper.ExecuteAsync("--auto-detect", output =>
 				{
 					// Creates a new result list for the cameras
 					List<Camera> cameras = new List<Camera>();
@@ -211,15 +218,22 @@ namespace System.Devices
 								continue;
 
 							// Creates the new camera and adds it to the result set
-							Camera camera = new Camera();
-							await camera.InitializeAsync(cameraName, cameraPort);
+							Camera camera = new Camera(cameraName, cameraPort);
 							cameras.Add(camera);
 						}
 					}
 
 					// Returns all cameras that have been found by gPhoto2
-					return cameras;
+					return Task.FromResult(cameras);
 				});
+
+			// Initializes the cameras that have been created (since all camera commands are executed in an action block, they must
+			// not be nested, because otherwise they would end up in a dead lock, therefore the initialization is done outside of
+			// the camera command)
+			await Task.WhenAll(createdCameras.Select(createdCamera => createdCamera.InitializeAsync()));
+
+			// Returns the initialized cameras
+			return createdCameras;
 		}
 
 		#endregion

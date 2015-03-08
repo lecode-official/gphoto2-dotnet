@@ -13,7 +13,7 @@ All: Library Test
 
 # The target, that creates the gPhotoSharp library
 Library: $(GPHOTOSHARPINPUTFILES) OutputDirectory
-	mcs $(GPHOTOSHARPINPUTFILES) /target:library /out:$(OUTPUTDIRECTORY)/GPhotoSharp.dll /nologo /reference:System.Core.dll
+	mcs $(GPHOTOSHARPINPUTFILES) /target:library /out:$(OUTPUTDIRECTORY)/GPhotoSharp.dll /nologo /reference:System.Core.dll /reference:System.Threading.Tasks.Dataflow.dll
 
 # The target, that creates the gPhotoSharp test application
 Test: $(TESTAPPLICATIONINPUTFILES) OutputDirectory Library
