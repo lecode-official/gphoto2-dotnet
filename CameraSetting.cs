@@ -19,21 +19,21 @@ namespace System.Devices
         #region Constructors
         
 		/// <summary>
-		/// Intializes a new <see cref="CameraSetting" /> instance. The constructor is made private, so that the factory pattern, which is used to instantiate new
-		/// instances of <see cref="CameraSetting" />, can be enforced.
+		/// Intializes a new <see cref="CameraSetting" /> instance. The constructor is made private, so that the factory pattern, which
+        /// is used to instantiate new instances of <see cref="CameraSetting" />, can be enforced.
 		/// </summary>
 		/// <param name="settingName">The name of the setting.</param>
-		/// <param name="ipcWrapper">
-		/// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the setting should use the exact same IPC wrapper
-		/// used by the camera (the IPC wrapper ensures that only one operation at a time is executed, which is important when interfacing with the camera). If two
-		/// operations, e.g. setting a value and capturing an image, would be performed at the same time, the program would crash, because gPhoto2 can only do one thing
-		/// at a time).
+		/// <param name="gPhoto2IpcWrapper">
+		/// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the setting should
+        /// use the exact same IPC wrapper used by the camera (the IPC wrapper ensures that only one operation at a time is executed,
+        /// which is important when interfacing with the camera). If two operations, e.g. setting a value and capturing an image, would
+        /// be performed at the same time, the program would crash, because gPhoto2 can only do one thing at a time).
 		/// </param>
-		private CameraSetting(string settingName, IpcWrapper ipcWrapper)
+		private CameraSetting(string settingName, GPhoto2IpcWrapper gPhoto2IpcWrapper)
 		{
             // Stores the all information about the setting for later use
             this.Name = settingName;
-		    this.ipcWrapper = ipcWrapper;
+		    this.gPhoto2IpcWrapper = gPhoto2IpcWrapper;
 		}
 
         #endregion
@@ -43,7 +43,7 @@ namespace System.Devices
 		/// <summary>
 		/// Contains the IPC wrapper, which is used to interface with gPhoto2.
 		/// </summary>
-		private IpcWrapper ipcWrapper;
+		private GPhoto2IpcWrapper gPhoto2IpcWrapper;
 		
 		/// <summary>
 		/// Contains a value that determines whether the setting has already been initialized.
@@ -87,7 +87,7 @@ namespace System.Devices
             if (!this.isInitialized)
             {
                 // Gets all the information about the setting
-                await this.ipcWrapper.ExecuteAsync(string.Format(CultureInfo.InvariantCulture, "--get-config \"{0}\"", this.Name), output =>
+                await this.gPhoto2IpcWrapper.ExecuteAsync(string.Format(CultureInfo.InvariantCulture, "--get-config \"{0}\"", this.Name), output =>
                     {
                         // Creates a string reader, so that the output of gPhoto2 can be read line by line
 					    using (StringReader stringReader = new StringReader(output))
@@ -198,17 +198,17 @@ namespace System.Devices
 		/// <summary>
 		/// Iterates all settings of the specified camera and initializes them.
 		/// </summary>
-		/// <param name="ipcWrapper">
+		/// <param name="gPhoto2IpcWrapper">
 		/// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the settings should use the exact same IPC wrapper
 		/// used by the camera (the IPC wrapper ensures that only one operation at a time is executed, which is important when interfacing with the camera). If two
 		/// operations, e.g. setting a value and capturing an image, would be performed at the same time, the program would crash, because gPhoto2 can only do one thing
 		/// at a time).
 		/// </param>
 		/// <returns>Returns a read-only list containing all settings of the specified camera.</returns>
-		internal static async Task<IReadOnlyCollection<CameraSetting>> GetCameraSettingsAsync(IpcWrapper ipcWrapper)
+		internal static async Task<IReadOnlyCollection<CameraSetting>> GetCameraSettingsAsync(GPhoto2IpcWrapper gPhoto2IpcWrapper)
 		{
 		    // Gets all the settings of the specified camera and returns them
-			return await ipcWrapper.ExecuteAsync("--list-config", output =>
+			return await gPhoto2IpcWrapper.ExecuteAsync("--list-config", output =>
 				{
 					// Creates a new result list for the camera settings
 					List<CameraSetting> cameraSettings = new List<CameraSetting>();
@@ -219,7 +219,7 @@ namespace System.Devices
 					    // Cycles over the each line of the output and creates a new setting (each line contains the name of the setting)
 						string line;
 						while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
-						    cameraSettings.Add(new CameraSetting(line.Trim(), ipcWrapper));
+						    cameraSettings.Add(new CameraSetting(line.Trim(), gPhoto2IpcWrapper));
 					}
 
 					// Returns all settings that have been found by gPhoto2 for the specified camera

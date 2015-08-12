@@ -2,6 +2,7 @@
 #region Using Directives
 
 using System;
+using System.Runtime.Serialization;
 
 #endregion
 
@@ -9,7 +10,7 @@ using System;
 /// Represents an exception, which is thrown when an error occurs during using the camera.
 /// </summary>
 [Serializable]
-public CameraException : Exception
+public class CameraException : Exception
 {
 	#region Constructors
 
