@@ -22,13 +22,15 @@ namespace System.Devices
         Option,
         
         /// <summary>
-        /// Represents a setting, whose value can be toggled, e.g. on and off (the actual values that should be used when setting them with gPhoto2 are 0 and 1).
+        /// Represents a setting, whose value can be toggled, e.g. on and off (the actual values that should be used when setting them
+        /// with gPhoto2 are 0 and 1).
         /// </summary>
         Toggle,
         
         /// <summary>
-        /// Represents a setting, that has a temporal value (the actual values that should be used when setting them with gPhoto2 are dates in the UNIX format, i.e. the
-        /// number of ticks since the UNIX epoch, also "now" can be used to set the current date and time).
+        /// Represents a setting, that has a temporal value (the actual values that should be used when setting them with gPhoto2 are
+        /// dates in the UNIX format, i.e. the number of ticks since the UNIX epoch, also "now" can be used to set the current date
+        /// and time).
         /// </summary>
         DateTime
     }
