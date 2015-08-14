@@ -2,6 +2,7 @@
 #region Using Directives
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
@@ -189,7 +190,7 @@ namespace System.Devices
 							// Creates the start information that are needed to run the gPhoto2 process in the interactive shell mode
 							ProcessStartInfo processStartInfo = new ProcessStartInfo
 							{
-								Arguments = "--shell",
+								Arguments = string.Concat("--shell ", this.StandardCommandLineParameters),
 								FileName = "gphoto2",
 								UseShellExecute = false,
 								CreateNoWindow = true,
@@ -213,26 +214,58 @@ namespace System.Devices
 						}
 						
 						// Executes the specified command by writing it to the standard input of the gPhoto2 interactive shell process
-						this.gPhoto2InteractiveShellProcess.StandardInput.WriteLine(
-							string.IsNullOrWhiteSpace(this.StandardCommandLineParameters) ?
-								commandLineParameters : string.Concat(this.StandardCommandLineParameters, " ", commandLineParameters));
+						this.gPhoto2InteractiveShellProcess.StandardInput.WriteLine(commandLineParameters);
 						
 						// Reads the output of the process line by line and returns it, the end of the output is detected by checking if
 						// the read output line starts with "gphoto2:" (in the interactive shell mode of gPhoto2 prints out the prompt
 						// "gphoto2:" followed by the current path)
-						string outputLine, output = string.Empty;
-			            while ((outputLine = this.gPhoto2InteractiveShellProcess.StandardOutput.ReadLine()) != null) 
+						int outputCharacterCode;
+						int currentLineNumber = 1;
+						string currentOutputLine = string.Empty;
+						List<string> outputLines = new List<string>();
+			            while ((outputCharacterCode = this.gPhoto2InteractiveShellProcess.StandardOutput.Read()) != -1) 
 			            {
-							// Checks if the end of the output has been reached (by detecting the prompt of the interactive shell mode)
-			                if (outputLine.ToUpperInvariant().StartsWith("GPHOTO2:"))
-			                	break;
+							// Converts the current character code to a character
+							char outputCharacter = Convert.ToChar(outputCharacterCode);
+							
+							// Checks what kind of character was read
+							if (outputCharacter == '\r')
+							{
+								// When a carriage return is read, then nothing is done (since the look-ahead is only one character and
+								// some systems need two characters for a new line, it is much safer to only watch for line feed and
+								// ignore the carriage return alltogether)
+								continue;
+							}
+							else if (outputCharacter == '\n')
+							{
+								// When the read character is a line feed, then the current line is added to the result (but empty lines
+								// and the first two lines, which just contain the shell prompt and a repitition of the command that is
+								// to be executed, are not added, because their are not needed)
+								if (currentLineNumber > 2 && !string.IsNullOrWhiteSpace(currentOutputLine))
+									outputLines.Add(currentOutputLine);
 								
-							// Since the end of the output has not yet been reached, the line is added to the output
-							output = string.Concat(output, Environment.NewLine, outputLine);
+								// After the current line has been added to the result or discarded, the current line is reset to empty
+								currentOutputLine = string.Empty;
+								
+								// Counts up the current line number, because the algorithm has to know in what line it currently is
+								currentLineNumber += 1;
+							}
+							else
+							{
+								// All other characters are added to the content of the current line
+								currentOutputLine += outputCharacter;
+							}
+							
+							// Finally it is checked whether the output has reached its end (which is when the line contains the shell
+							// prompt "ghoto2:" and when it is not the first line, because the first line contains a shell prompt as
+							// well), if so then the reading of the output of gPhoto2 is finished
+							if (currentOutputLine.ToUpperInvariant().StartsWith("GPHOTO2:") && currentLineNumber > 1)
+								break;
 			            }
-
-						// Returns the output of the process, so that the user is able to parse it
-						return output;
+						
+						// Returns the output of the process, so that the user is able to parse it (by joining all lines written to the
+						// output together)
+						return string.Join(Environment.NewLine, outputLines);
 					})
 				};
 			

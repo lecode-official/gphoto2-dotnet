@@ -87,8 +87,8 @@ namespace System.Devices
             if (!this.isInitialized)
             {
                 // Gets all the information about the setting
-                await this.gPhoto2IpcWrapper.ExecuteAsync(string.Format(CultureInfo.InvariantCulture, "--get-config \"{0}\"", this.Name), output =>
-                    {
+                await this.gPhoto2IpcWrapper.ExecuteInteractiveAsync(string.Format(CultureInfo.InvariantCulture, "get-config {0}", this.Name), output =>
+                    {   
                         // Creates a string reader, so that the output of gPhoto2 can be read line by line
 					    using (StringReader stringReader = new StringReader(output))
 					    {
@@ -205,10 +205,10 @@ namespace System.Devices
 		/// at a time).
 		/// </param>
 		/// <returns>Returns a read-only list containing all settings of the specified camera.</returns>
-		internal static async Task<IReadOnlyCollection<CameraSetting>> GetCameraSettingsAsync(GPhoto2IpcWrapper gPhoto2IpcWrapper)
+		internal static async Task<IEnumerable<CameraSetting>> GetCameraSettingsAsync(GPhoto2IpcWrapper gPhoto2IpcWrapper)
 		{
 		    // Gets all the settings of the specified camera and returns them
-			return await gPhoto2IpcWrapper.ExecuteAsync("--list-config", output =>
+			return await gPhoto2IpcWrapper.ExecuteInteractiveAsync("list-config", output =>
 				{
 					// Creates a new result list for the camera settings
 					List<CameraSetting> cameraSettings = new List<CameraSetting>();

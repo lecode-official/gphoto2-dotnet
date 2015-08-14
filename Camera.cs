@@ -97,7 +97,7 @@ namespace System.Devices
 		/// <summary>
 		/// Gets a list of all the settings of the camera.
 		/// </summary>
-		public IReadOnlyCollection<CameraSetting> Settings { get; private set; }
+		public IEnumerable<CameraSetting> Settings { get; private set; }
 		
 		#endregion
 		
@@ -128,7 +128,7 @@ namespace System.Devices
 			// Sets the camera name and its port as standard command line parameters, so that they do not have to be stated over and
 			// over again explictly
 			this.gPhoto2IpcWrapper.StandardCommandLineParameters = string.Format(CultureInfo.InvariantCulture,
-				"--camera \"{0}\" --port \"{1}\"", this.Name, this.Port);
+				"{0} --camera \"{1}\" --port \"{2}\"", this.gPhoto2IpcWrapper.StandardCommandLineParameters, this.Name, this.Port);
 			    
 			// Gets the abilities of the camera, so that we know which actions can be executed
 			await this.gPhoto2IpcWrapper.ExecuteAsync("--abilities",
@@ -200,10 +200,13 @@ namespace System.Devices
 		/// Iterates all cameras attached to the system and initializes them.
 		/// </summary>
 		/// <returns>Returns a read-only list of all cameras attached to the system.</returns>
-		public static async Task<IReadOnlyCollection<Camera>> GetCamerasAsync()
+		public static async Task<IEnumerable<Camera>> GetCamerasAsync()
 		{
 		    // Creates a new IPC wrapper, which can be used to interface with gPhoto2
-		    GPhoto2IpcWrapper gPhoto2IpcWrapper = new GPhoto2IpcWrapper();
+		    GPhoto2IpcWrapper gPhoto2IpcWrapper = new GPhoto2IpcWrapper
+			{
+				StandardCommandLineParameters = "--quiet"
+			};
 		    
 			// Gets all the cameras attached to the computer
 			List<Camera> createdCameras = await gPhoto2IpcWrapper.ExecuteAsync("--auto-detect", output =>

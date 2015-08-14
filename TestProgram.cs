@@ -27,8 +27,6 @@ namespace Application
 				return;
 			}
 
-			foreach (CameraSetting setting in camera.Settings)
-				Console.WriteLine(setting.Name);
 			Console.WriteLine(await camera.Settings.First().GetLabelAsync());
 		}
 	}
