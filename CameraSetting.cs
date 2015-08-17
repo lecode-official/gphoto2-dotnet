@@ -61,6 +61,11 @@ namespace System.Devices
         private string label;
         
         /// <summary>
+        /// Contains the last read current value of the setting.
+        /// </summary>
+        private string currentValue;
+        
+        /// <summary>
         /// Contains a list of all possible choices (only set if the camera setting type is Option, otherwise this list is empty).
         /// </summary>
         private IReadOnlyCollection<string> choices;
@@ -83,69 +88,71 @@ namespace System.Devices
 		/// </summary>
         private async Task InitializeAsync()
         {
-            // Checks if the setting has already been initialized, if so then the setting does not need to be initialized again
-            if (!this.isInitialized)
-            {
-                // Gets all the information about the setting
-                await this.gPhoto2IpcWrapper.ExecuteInteractiveAsync(string.Format(CultureInfo.InvariantCulture, "get-config {0}", this.Name), output =>
-                    {   
-                        // Creates a string reader, so that the output of gPhoto2 can be read line by line
-					    using (StringReader stringReader = new StringReader(output))
-					    {
-					        // Reads the first line, which contains the label, a human-readable name, of the setting
-					        string line = stringReader.ReadLine();
-					        string[] splittedLine = string.IsNullOrWhiteSpace(line) ? null : line.Split(':');
-					        this.label = splittedLine.Length != 2 ? string.Empty : splittedLine[1].Trim();
+            // Gets all the information about the setting
+            await this.gPhoto2IpcWrapper.ExecuteInteractiveAsync(string.Format(CultureInfo.InvariantCulture, "get-config {0}", this.Name), output =>
+                {   
+                    // Creates a string reader, so that the output of gPhoto2 can be read line by line
+				    using (StringReader stringReader = new StringReader(output))
+				    {
+				        // Reads the first line, which contains the label, a human-readable name, of the setting
+				        string line = stringReader.ReadLine();
+				        string[] splittedLine = string.IsNullOrWhiteSpace(line) ? null : line.Split(':');
+				        this.label = splittedLine.Length != 2 ? string.Empty : splittedLine[1].Trim();
+				        
+				        // Reads the second line, which contains the type of the setting
+				        line = stringReader.ReadLine();
+				        splittedLine = string.IsNullOrWhiteSpace(line) ? null : line.Split(':');
+				        string typeName = splittedLine.Length != 2 ? string.Empty : splittedLine[1].Trim().ToUpperInvariant();
+				        if (typeName == "TEXT")
+				            this.settingType = CameraSettingType.Text;
+			            else if (typeName == "RADIO" || typeName == "MENU")
+				            this.settingType = CameraSettingType.Option;
+			            else if (typeName == "DATE")
+				            this.settingType = CameraSettingType.DateTime;
+			            else if (typeName == "TOGGLE")
+				            this.settingType = CameraSettingType.Text;
+			            else
+				            this.settingType = CameraSettingType.Unknown;
+				        
+				        // Reads the third line, which contains the current value, parses it and stores the current value of the setting
+                        Regex currentValueRegex = new Regex("^Current: (?<Value>(.*))$");
+				        line = stringReader.ReadLine().Trim();
+                        Match match = currentValueRegex.Match(line);
+                        this.currentValue = match.Groups["Value"].Value;
+				        
+				        // Reads all following lines, which each contain a value choice, which is useful, when the setting is of type
+                        // Option
+				        List<string> choices = new List<string>();
+				        if (this.settingType == CameraSettingType.Option)
+				        {
+					        // The line contains the number of the choice and the value as a string
+					        Regex choiceRegex = new Regex("^Choice: [0-9]+ (?<Choice>(.+))$");
 					        
-					        // Reads the second line, which contains the type of the setting
-					        line = stringReader.ReadLine();
-					        splittedLine = string.IsNullOrWhiteSpace(line) ? null : line.Split(':');
-					        string typeName = splittedLine.Length != 2 ? string.Empty : splittedLine[1].Trim().ToUpperInvariant();
-					        if (typeName == "TEXT")
-					            this.settingType = CameraSettingType.Text;
-				            else if (typeName == "RADIO" || typeName == "MENU")
-					            this.settingType = CameraSettingType.Option;
-				            else if (typeName == "DATE")
-					            this.settingType = CameraSettingType.DateTime;
-				            else if (typeName == "TOGGLE")
-					            this.settingType = CameraSettingType.Text;
-				            else
-					            this.settingType = CameraSettingType.Unknown;
-					        
-					        // Reads the third line, which contains the current value, which is not needed right now and therefore discarded
-					        stringReader.ReadLine();
-					        
-					        // Reads all following lines, which each contain a value choice, which is useful, when the setting is of type Option
-					        List<string> choices = new List<string>();
-					        if (this.settingType == CameraSettingType.Option)
+			                // Cycles over each line to extract the choices
+					        while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
 					        {
-						        // The line contains the number of the choice and the value as a string
-						        Regex choiceRegex = new Regex("^Choice: [0-9]+ (?<Choice>(.+))$");
-						        
-				                // Cycles over each line to extract the choices
-						        while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
-						        {
-							        // Trims the line, because it might have leading or trailing whitespaces (the regular expression would be more complex with them)
-							        line = line.Trim();
+						        // Trims the line, because it might have leading or trailing whitespaces (the regular expression would
+                                // be more complex with them)
+						        line = line.Trim();
 
-							        // Reads the choice from the match and adds it to the list of choices
-							        Match match = choiceRegex.Match(line);
-							        string choice = match.Groups["Choice"].Value;
-							        if (string.IsNullOrWhiteSpace(choice))
-								        continue;
-							        choices.Add(choice);
-						        }
-						    }
-						    this.choices = choices;
+						        // Reads the choice from the match and adds it to the list of choices
+						        match = choiceRegex.Match(line);
+						        string choice = match.Groups["Choice"].Value;
+						        if (string.IsNullOrWhiteSpace(choice))
+							        continue;
+						        choices.Add(choice);
+					        }
 					    }
-                        
-        				// Since no asynchronous operation was performed, an already resolved task is returned
-        				return Task.FromResult(0);
-                    });
+					    this.choices = choices;
+				    }
                     
-                // In order to make sure, that the initialize method is only called once, we store a value that states that the setting is already initialized
-                this.isInitialized = true;
-            }
+    				// Since no asynchronous operation was performed, an already resolved task is returned
+    				return Task.FromResult(0);
+                });
+                
+            // In order to make sure, that the initialize method is only called once, we store a value that states that the setting is
+            // already initialized
+            this.isInitialized = true;
         }
         
         #endregion
@@ -158,8 +165,9 @@ namespace System.Devices
         /// <returns>Returns the type of the setting.</returns>
         public async Task<CameraSettingType> GetTypeAsync()
         {
-            // Makes sure that the setting has been initialized
-            await this.InitializeAsync();
+            // Checks if the setting has already been initialized, if so then the setting does not need to be initialized again
+            if (!this.isInitialized)
+                await this.InitializeAsync();
             
             // Returns the type of the setting
             return this.settingType;
@@ -171,11 +179,26 @@ namespace System.Devices
         /// <returns>Returns the label of the setting.</returns>
         public async Task<string> GetLabelAsync()
         {
-            // Makes sure that the setting has been initialized
-            await this.InitializeAsync();
+            // Checks if the setting has already been initialized, if so then the setting does not need to be initialized again
+            if (!this.isInitialized)
+                await this.InitializeAsync();
             
             // Returns the label of the setting
             return this.label;
+        }
+        
+        /// <summary>
+        /// Retrieves the current value of the setting asynchronously.
+        /// </summary>
+        /// <returns>Returns the current value of the setting.</returns>
+        public async Task<string> GetCurrentValueAsync()
+        {
+            // Initializes the setting (during the initialization the current value of the setting is read, therefore the setting is
+            // re-initialized, even if it has been initialized before, so that the current value is retrieved)
+            await this.InitializeAsync();
+            
+            // Returns the current value of the setting
+            return this.currentValue;
         }
         
         /// <summary>
@@ -184,8 +207,9 @@ namespace System.Devices
         /// <returns>Returns the choices of the setting.</returns>
         public async Task<IReadOnlyCollection<string>> GetChoicesAsync()
         {
-            // Makes sure that the setting has been initialized
-            await this.InitializeAsync();
+            // Checks if the setting has already been initialized, if so then the setting does not need to be initialized again
+            if (!this.isInitialized)
+                await this.InitializeAsync();
             
             // Returns the choices of the setting
             return this.choices;
@@ -199,10 +223,10 @@ namespace System.Devices
 		/// Iterates all settings of the specified camera and initializes them.
 		/// </summary>
 		/// <param name="gPhoto2IpcWrapper">
-		/// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the settings should use the exact same IPC wrapper
-		/// used by the camera (the IPC wrapper ensures that only one operation at a time is executed, which is important when interfacing with the camera). If two
-		/// operations, e.g. setting a value and capturing an image, would be performed at the same time, the program would crash, because gPhoto2 can only do one thing
-		/// at a time).
+		/// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the settings should
+        /// use the exact same IPC wrapper used by the camera (the IPC wrapper ensures that only one operation at a time is executed,
+        /// which is important when interfacing with the camera). If two operations, e.g. setting a value and capturing an image, would
+        /// be performed at the same time, the program would crash, because gPhoto2 can only do one thing at a time).
 		/// </param>
 		/// <returns>Returns a read-only list containing all settings of the specified camera.</returns>
 		internal static async Task<IEnumerable<CameraSetting>> GetCameraSettingsAsync(GPhoto2IpcWrapper gPhoto2IpcWrapper)

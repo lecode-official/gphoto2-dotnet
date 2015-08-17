@@ -3,6 +3,7 @@
 
 using System;
 using System.Devices;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -27,7 +28,9 @@ namespace Application
 				return;
 			}
 
-			Console.WriteLine(await camera.Settings.First().GetLabelAsync());
+			foreach (CameraSetting setting in camera.Settings)
+				Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}",
+					await setting.GetLabelAsync(), await setting.GetCurrentValueAsync()));
 		}
 	}
 }
