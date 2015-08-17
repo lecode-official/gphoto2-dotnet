@@ -128,6 +128,9 @@ namespace System.Devices
 						// Waits till the process has finished
 						process.WaitForExit();
 
+						// Checks if the output of gPhoto2 contains any errors, if so a camera exception is thrown
+						CameraException.DetectCameraErrors(output);
+						
 						// Returns the output of the process, so that the user is able to parse it
 						return output;
 					})
@@ -153,8 +156,15 @@ namespace System.Devices
 			// Executes the process in order to get it's output
 			string processOutput = await this.ExecuteAsync(commandLineParameters);
 
-			// Parses the output of the process and returns the parsed object
-			return await parser(processOutput);
+			// Tries to parse the output and return the parsed object, if anything goes wrong, then an exception is thrown
+			try
+			{
+				return await parser(processOutput);
+			}
+			catch (Exception exception)
+			{
+				throw new CameraException("An unknown error occurred. For more details see the inner exception.", exception);
+			}
 		}
 
 		/// <summary>
@@ -167,8 +177,15 @@ namespace System.Devices
 			// Executes the process in order to get it's output
 			string processOutput = await this.ExecuteAsync(commandLineParameters);
 
-			// Parses the output of the process
-			await parser(processOutput);
+			// Tries to parse the output and return the parsed object, if anything goes wrong, then an exception is thrown
+			try
+			{
+				await parser(processOutput);
+			}
+			catch (Exception exception)
+			{
+				throw new CameraException("An unknown error occurred. For more details see the inner exception.", exception);
+			}
 		}
 		
 		/// <summary>
@@ -263,9 +280,14 @@ namespace System.Devices
 								break;
 			            }
 						
-						// Returns the output of the process, so that the user is able to parse it (by joining all lines written to the
-						// output together)
-						return string.Join(Environment.NewLine, outputLines);
+						// Joins all the lines written to the output together, so that they can be returned as a single string
+						string output = string.Join(Environment.NewLine, outputLines);
+						
+						// Checks if the output of gPhoto2 contains any errors, if so a camera exception is thrown
+						CameraException.DetectCameraErrors(output);
+						
+						// Returns the output of the process, so that the user is able to parse it
+						return output;
 					})
 				};
 			
@@ -290,8 +312,15 @@ namespace System.Devices
 			// Executes the command in order to get it's output
 			string processOutput = await this.ExecuteInteractiveAsync(commandLineParameters);
 
-			// Parses the output of the process and returns the parsed object
-			return await parser(processOutput);
+			// Tries to parse the output and return the parsed object, if anything goes wrong, then an exception is thrown
+			try
+			{
+				return await parser(processOutput);
+			}
+			catch (Exception exception)
+			{
+				throw new CameraException("An unknown error occurred. For more details see the inner exception.", exception);
+			}
 		}
 
 		/// <summary>
@@ -305,8 +334,15 @@ namespace System.Devices
 			// Executes the command in order to get it's output
 			string processOutput = await this.ExecuteInteractiveAsync(commandLineParameters);
 
-			// Parses the output of the process
-			await parser(processOutput);
+			// Tries to parse the output and return the parsed object, if anything goes wrong, then an exception is thrown
+			try
+			{
+				await parser(processOutput);
+			}
+			catch (Exception exception)
+			{
+				throw new CameraException("An unknown error occurred. For more details see the inner exception.", exception);
+			}
 		}
 		
 		#endregion

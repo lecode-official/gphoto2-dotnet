@@ -28,9 +28,18 @@ namespace Application
 				return;
 			}
 
-			foreach (CameraSetting setting in camera.Settings)
-				Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}",
-					await setting.GetLabelAsync(), await setting.GetCurrentValueAsync()));
+			try
+			{
+				foreach (CameraSetting setting in camera.Settings)
+					Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}",
+						await setting.GetLabelAsync(), await setting.GetCurrentValueAsync()));
+			}
+			catch (CameraException exception)
+			{
+				Console.WriteLine("An error occurred:");
+				Console.WriteLine(exception.Message);
+				Console.WriteLine(exception.Details);
+			}
 		}
 	}
 }
