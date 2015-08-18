@@ -74,7 +74,6 @@ public class CameraException : Exception
 	/// exception if an error was detected in the output.
 	/// <summary>
 	/// <param name="output">The output of gPhoto2, which is to be searched for DetectCameraErrors.</param>
-	/// <returns>Returns a <see cref="CameraException" /> if an error was detected and <c>null</c> otherwise.</returns>
 	public static void DetectCameraErrors(string output)
 	{
 		// Creates a new regular expression, which detects an error message in the output of gPhoto2

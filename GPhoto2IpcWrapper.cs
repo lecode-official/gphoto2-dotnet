@@ -29,11 +29,22 @@ namespace System.Devices
 			// time, because only one application may access the camera via USB at a time, also this ensures a causal chain of events
 			this.cameraActionBlock = new ActionBlock<GPhoto2Command>(new Func<GPhoto2Command, Task>(async gPhoto2Command =>
 				{
-					// Executes the gPhoto2 command
-					string output = await gPhoto2Command.Command();
-
-					// Resolves the task completion source so that the caller knows that the command was executed on the camera
-					gPhoto2Command.TaskCompletionSource.SetResult(output);
+					// Tries to executes the gPhoto2 command, if an exception is thrown, then the task is switched to the Faulted state
+					try
+					{
+						// Executes the gPhoto2 command
+						string output = await gPhoto2Command.Command();
+	
+						// Resolves the task completion source so that the caller knows that the command was executed on the camera
+						gPhoto2Command.TaskCompletionSource.SetResult(output);	
+					}
+					catch (Exception exception)
+					{
+						// Since an exception was thrown, the task completion source is used to switch the underlying task to the
+						// Faulted state, so that the caller is able to catch the exception (otherwise the exception would be lost in
+						// the call stack and can never be caught by up-stream callers)
+						gPhoto2Command.TaskCompletionSource.SetException(exception);
+					}
 				}));
 		}
 		
@@ -136,12 +147,12 @@ namespace System.Devices
 					})
 				};
 
-			// Schedules the camera command, so that it can run on the camera (it must be scheduled to ensure that only one command
-			// is executed at a time)
+			// Schedules the camera command, so that it can run on the camera (it must be scheduled to ensure that only one command is
+			// executed at a time)
 			this.cameraActionBlock.Post(gPhoto2Command);
 
 			// Awaits the execution of the scheduled camera command
-			return gPhoto2Command.TaskCompletionSource.Task;
+			return gPhoto2Command.TaskCompletionSource.Task;			
 		}
 
 		/// <summary>
@@ -291,8 +302,8 @@ namespace System.Devices
 					})
 				};
 			
-			// Schedules the camera command, so that it can run on the camera (it must be scheduled to ensure that only one command
-			// is executed at a time)
+			// Schedules the camera command, so that it can run on the camera (it must be scheduled to ensure that only one command is
+			// executed at a time)
 			this.cameraActionBlock.Post(gPhoto2Command);
 
 			// Awaits the execution of the scheduled camera command
