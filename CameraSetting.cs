@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -68,7 +69,7 @@ namespace System.Devices
         /// <summary>
         /// Contains a list of all possible choices (only set if the camera setting type is Option, otherwise this list is empty).
         /// </summary>
-        private IReadOnlyCollection<string> choices;
+        private IEnumerable<string> choices;
         
         #endregion
         
@@ -86,6 +87,10 @@ namespace System.Devices
 		/// <summary>
 		/// Initializes a new setting (the intialization must be performed before getting or setting the value).
 		/// </summary>
+        /// <exception cref="CameraSetting">
+        /// If anything goes wrong during the initialization of the camera setting, then a <see cref="CameraSetting" /> exception is
+        /// thrown.
+        /// </exception>
         private async Task InitializeAsync()
         {
             // Gets all the information about the setting
@@ -162,6 +167,9 @@ namespace System.Devices
         /// <summary>
         /// Retrieves the type of the setting asynchronously.
         /// </summary>
+        /// <exception cref="CameraSetting">
+        /// If anything goes wrong during the retrieval of the type, then a <see cref="CameraSetting" /> exception is thrown.
+        /// </exception>
         /// <returns>Returns the type of the setting.</returns>
         public async Task<CameraSettingType> GetTypeAsync()
         {
@@ -176,6 +184,9 @@ namespace System.Devices
         /// <summary>
         /// Retrieves the label of the setting, which is a human-readable name for the setting, asynchronously.
         /// </summary>
+        /// <exception cref="CameraSetting">
+        /// If anything goes wrong during the retrieval of the label, then a <see cref="CameraSetting" /> exception is thrown.
+        /// </exception>
         /// <returns>Returns the label of the setting.</returns>
         public async Task<string> GetLabelAsync()
         {
@@ -188,10 +199,30 @@ namespace System.Devices
         }
         
         /// <summary>
+        /// Retrieves the choices for the values of the setting, which are only relevant if the setting is of type option, asynchronously.
+        /// </summary>
+        /// <exception cref="CameraSetting">
+        /// If anything goes wrong during the retrieval of the choices, then a <see cref="CameraSetting" /> exception is thrown.
+        /// </exception>
+        /// <returns>Returns the choices of the setting.</returns>
+        public async Task<IEnumerable<string>> GetChoicesAsync()
+        {
+            // Checks if the setting has already been initialized, if so then the setting does not need to be initialized again
+            if (!this.isInitialized)
+                await this.InitializeAsync();
+            
+            // Returns the choices of the setting
+            return this.choices;
+        }
+        
+        /// <summary>
         /// Retrieves the current value of the setting asynchronously.
         /// </summary>
+        /// <exception cref="CameraSetting">
+        /// If anything goes wrong during the retrieval of the current value, then a <see cref="CameraSetting" /> exception is thrown.
+        /// </exception>
         /// <returns>Returns the current value of the setting.</returns>
-        public async Task<string> GetCurrentValueAsync()
+        public async Task<string> GetValueAsync()
         {
             // Initializes the setting (during the initialization the current value of the setting is read, therefore the setting is
             // re-initialized, even if it has been initialized before, so that the current value is retrieved)
@@ -202,17 +233,44 @@ namespace System.Devices
         }
         
         /// <summary>
-        /// Retrieves the choices for the values of the setting, which are only relevant if the setting is of type option, asynchronously.
+        /// Sets a new value for the specified camera setting.
         /// </summary>
-        /// <returns>Returns the choices of the setting.</returns>
-        public async Task<IReadOnlyCollection<string>> GetChoicesAsync()
+        /// <param name="value">The new value that is to be set.</param>
+        /// <exception cref="CameraSetting">
+        /// If the value is not valid or anything goes wrong during setting the value, then a <see cref="CameraSetting" /> exception is
+        /// thrown.
+        /// </exception>
+        public async Task SetValueAsync(string value)
         {
             // Checks if the setting has already been initialized, if so then the setting does not need to be initialized again
             if (!this.isInitialized)
                 await this.InitializeAsync();
             
-            // Returns the choices of the setting
-            return this.choices;
+            // Validates the value that is to be set, if the value could not be validated, then a camera exception is thrown
+            bool isValueValid = false;
+            switch (this.settingType)
+            {
+                case CameraSettingType.Unknown:
+                    throw new CameraException("The value of the setting could not be set, because its type is Unknown.");
+                case CameraSettingType.Text:
+                    isValueValid = true;
+                    break;
+                case CameraSettingType.Option:
+                    isValueValid = this.choices.Any(choice => choice == value);
+                    break;
+                case CameraSettingType.Toggle:
+                    isValueValid = value == "0" || value == "1";
+                    break;
+                case CameraSettingType.DateTime:
+                    isValueValid = value.All(character => char.IsDigit(character));
+                    break;
+            }
+            if (!isValueValid)
+                throw new CameraException("The value of the setting could not be set, because the specified value is invalid for the camera setting.");
+            
+            // Executes the set value command on the camera
+            await gPhoto2IpcWrapper.ExecuteInteractiveAsync(string.Format(CultureInfo.InvariantCulture, "set-config {0}={1}",
+                this.Name, value));
         }
         
         #endregion
@@ -228,6 +286,9 @@ namespace System.Devices
         /// which is important when interfacing with the camera). If two operations, e.g. setting a value and capturing an image, would
         /// be performed at the same time, the program would crash, because gPhoto2 can only do one thing at a time).
 		/// </param>
+        /// <exception cref="CameraSetting">
+        /// If anything goes wrong during the retrieval of the camera settings, then a <see cref="CameraSetting" /> exception is thrown.
+        /// </exception>
 		/// <returns>Returns a read-only list containing all settings of the specified camera.</returns>
 		internal static async Task<IEnumerable<CameraSetting>> GetCameraSettingsAsync(GPhoto2IpcWrapper gPhoto2IpcWrapper)
 		{

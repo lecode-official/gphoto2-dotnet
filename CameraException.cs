@@ -52,13 +52,26 @@ public class CameraException : Exception
 	}
 
 	#endregion
+	
+	#region Private Static Fields
+	
+	/// <summary>
+	/// Contains the regular expression for the first type of error messages. This error message comes in this format: "*** Error
+	/// ({ErrorCode}: '{ErrorMessage}') ***".
+	/// </summary>
+	private static Regex firstTypeErrorRegex = new Regex(@"^\*\*\* Error \(((-|[0-9])*): '(?<ErrorMessage>(.*))'\) \*\*\*(.*)$",
+		RegexOptions.Multiline);
+	
+	/// <summary>
+	/// Contains the regular expression for the first type of error messages. This error message comes in this format: "*** Error ***
+	/// <NewLine>{ErrorMessage}".
+	/// </summary>
+	private static Regex secondTypeErrorRegex = new Regex(@"^\*\*\* Error \*\*\*(.*)$\n^(?<ErrorMessage>(.*))$",
+		RegexOptions.Multiline);
+	
+	#endregion
 
 	#region Public Properties
-
-	/// <summary>
-	/// Gets or sets the error code of the gPhoto2 error.
-	/// </summary>
-	public string ErrorCode { get; set; }
 
 	/// <summary>
 	/// Gets or sets details of the gPhoto2 error.
@@ -76,21 +89,20 @@ public class CameraException : Exception
 	/// <param name="output">The output of gPhoto2, which is to be searched for DetectCameraErrors.</param>
 	public static void DetectCameraErrors(string output)
 	{
-		// Creates a new regular expression, which detects an error message in the output of gPhoto2
-		Regex errorRegex = new Regex(string.Concat("^", Regex.Escape("*** Error ("),
-			"(?<ErrorCode>(([0-9]|-))*): '(?<ErrorMessage>(.*))'", Regex.Escape(") ***"), "$"));
+		// Tries to match the regular expressions with the output of gPhoto2
+		string errorMessage = string.Empty;
+		foreach (Match match in CameraException.firstTypeErrorRegex.Matches(output))
+			errorMessage = string.Concat(errorMessage, Environment.NewLine, match.Groups["ErrorMessage"].Value);
+		foreach (Match match in CameraException.secondTypeErrorRegex.Matches(output))
+			errorMessage = string.Concat(errorMessage, Environment.NewLine, match.Groups["ErrorMessage"].Value);
 		
-		// Tries to match the regular expression with the output of gPhoto2
-		Match match = errorRegex.Match(output);
-		
-		// Checks if the regular expression was a match, if so then the error message from the gPhoto2 output is retrieved and a camera
+		// Checks if the regular expressions were a match, if so then the error message from the gPhoto2 output is retrieved and a camera
 		// exception is thrown
-		if (match.Success)
+		if (!string.IsNullOrWhiteSpace(errorMessage))
 		{
 			throw new CameraException("An error occurred during the processing of the command send to the camera.")
 			{
-				ErrorCode = match.Groups["ErrorCode"].Value,
-				Details = match.Groups["ErrorMessage"].Value
+				Details = errorMessage
 			};
 		}
 	}

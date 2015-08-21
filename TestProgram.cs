@@ -32,11 +32,11 @@ namespace Application
 
 				foreach (CameraSetting setting in camera.Settings)
 					Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}",
-						await setting.GetLabelAsync(), await setting.GetCurrentValueAsync()));
+						await setting.GetLabelAsync(), await setting.GetValueAsync()));
 			}
 			catch (CameraException exception)
 			{
-				Console.WriteLine("An error occurred: " + exception.Details);
+				Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Details));
 			}
 		}
 	}
