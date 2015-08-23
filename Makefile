@@ -3,19 +3,19 @@
 OUTPUTDIRECTORY           = Build
 
 # Contains the input files for the gPhotoSharp library
-GPHOTOSHARPINPUTFILES     = AssemblyInfo.cs Camera.cs CameraException.cs CameraSetting.cs CameraSettingType.cs GPhoto2IpcWrapper.cs
+GPHOTOSHARPINPUTFILES     = Source/AssemblyInfo.cs Source/Camera.cs Source/CameraException.cs Source/CameraSetting.cs Source/CameraSettingType.cs Source/GPhoto2IpcWrapper.cs
 
-# Contains the input files for the gPhotoShart library test application
-TESTAPPLICATIONINPUTFILES = TestProgram.cs
+# Contains the input files for the gPhotoSharp test applications
+TESTAPPLICATIONINPUTFILES = Test/CameraSettingsTest.cs
 
-# The target, that creates the gPhotoSharp library and the test application
+# The target, that creates the gPhotoSharp library and the test applications
 All: Library Test
 
 # The target, that creates the gPhotoSharp library
 Library: $(GPHOTOSHARPINPUTFILES) OutputDirectory
 	mcs $(GPHOTOSHARPINPUTFILES) /target:library /out:$(OUTPUTDIRECTORY)/GPhotoSharp.dll /nologo /reference:System.Core.dll /reference:System.Threading.Tasks.Dataflow.dll
 
-# The target, that creates the gPhotoSharp test application
+# The target, that creates the gPhotoSharp test applications
 Test: $(TESTAPPLICATIONINPUTFILES) OutputDirectory Library
 	mcs $(TESTAPPLICATIONINPUTFILES) /target:exe /out:$(OUTPUTDIRECTORY)/TestProgram.exe /nologo /reference:System.Core.dll /reference:GPhotoSharp.dll /lib:$(OUTPUTDIRECTORY)
 
