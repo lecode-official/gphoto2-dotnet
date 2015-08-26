@@ -7,14 +7,26 @@ var gutil = require('gulp-util');
 gulp.task("launch-debug", ["build-debug"], function(done) {
     
     // Launches the camera settings test application in debug mode using the mono virtual machine
-    var cSharpCompilerProcess = spawn("mono", [
+    var monoProcess = spawn("mono", [
         "--debug",
         "--debugger-agent=transport=dt_socket,server=y,address=127.0.0.1:55555",
         "Build/Debug/CameraSettingsTest.exe"
     ], { cwd: process.cwd() });
 
+    // Reads the output of the C# compiler on the standard output and logs it using gulp
+    monoProcess.stdout.setEncoding('utf8');
+    monoProcess.stdout.on('data', function(data) {
+        gutil.log(data);
+    });
+    
+    // Reads the output of the C# compiler on the standard error output and logs it using gulp
+    monoProcess.stderr.setEncoding('utf8');
+    monoProcess.stderr.on('data', function(data) {
+        gutil.log(gutil.colors.red(data));
+    });
+    
     // Waits till the camera settings test application is done and signals gulp that the task has finished
-    cSharpCompilerProcess.on('close', done);
+    monoProcess.on('close', done);
 });
 
 // Represents a task, which compiles the gPhoto2.NET library and all its test applications in a debug configuration
