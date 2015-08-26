@@ -11,6 +11,10 @@ using System.Threading.Tasks;
 
 namespace Application
 {
+	/// <summary>
+	/// Represents a test application, which gets the first camera attached to the system and prints out all settings of the camera
+	/// including their values.
+	/// </summar>
 	public class CameraSettingsTest
 	{
 		#region Public Static Methods
