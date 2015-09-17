@@ -8,11 +8,11 @@ cameras from a .NET application. gPhoto2.NET was developed using Mono on Linux a
 The project is currently not yet ready for prime time. It is in an early alpha stage where a lot of vital features are still missing or
 do not work as expected. Ultimately the library should be usable on Raspberry Pi, but I am not sure if it runs or builds on a Raspberry
 Pi right now, since the project is currently developed in a Linux desktop environment. Any help, e.g. feature request or bug reports,
-is greatly appreciated. Please use the GitHub's issue system for that. If you want to improve on my work or fix bugs, then feel free to
+is greatly appreciated. Please use GitHub's issue system for that. If you want to improve on my work or fix bugs, then feel free to
 fork this project and send me a pull request.
 
 ## Building the Project
-(coming soon)
+(Coming soon)
 
 ## Using the Library
 The following example showcases how cameras that are attached to the system can be enumerated. After retrieving the first camera all
@@ -51,3 +51,6 @@ finally
 		camera.Dispose();
 }
 ```
+
+## Setting up the Library on the Raspberry Pi
+(Coming soon)
