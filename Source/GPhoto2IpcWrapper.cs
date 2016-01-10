@@ -84,8 +84,16 @@ namespace System.Devices
 			// Checks if the gPhoto2 interactive shell process is still running, if so then the process is terminated
 			if (this.gPhoto2InteractiveShellProcess != null)
 			{
+				// Sends the exit command to the interactive gPhoto2 shell process, which should quit the application
+				this.gPhoto2InteractiveShellProcess.StandardInput.WriteLine("exit");
+				
+				// Waits for the interactive gPhoto2 shell process to stop, if it has not finished after 100ms, then the process is
+				// killed forcefully
+				this.gPhoto2InteractiveShellProcess.WaitForExit(100);
 				this.gPhoto2InteractiveShellProcess.Kill();
 				this.gPhoto2InteractiveShellProcess.Close();
+				
+				// Sets the gPhoto2 interactive shell process to null, so that it is not disposed of twice
 				this.gPhoto2InteractiveShellProcess = null;
 			}
 		}

@@ -35,11 +35,12 @@ namespace Application
 		{
 			// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all
 			// calls to the gphoto2-dotnet should be wrapped in try-catch-clauses, gphoto2-dotnet always throws CameraException
+			Camera camera = null;
 			try
 			{
 				// Gets the first camera attached to the computer
-				Camera camera = (await Camera.GetCamerasAsync()).FirstOrDefault();
-	
+				camera = (await Camera.GetCamerasAsync()).FirstOrDefault();
+				
 				// Checks if a camera was found, if no camera was found, then an error message is printed out and the program is quit
 				if (camera == null)
 				{
@@ -56,6 +57,12 @@ namespace Application
 			{
 				// If an exception was caught, e.g. because the camera was unplugged, an error message is printed out
 				Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Details));
+			}
+			finally
+			{
+				// If a camera was acquired, then it is safely disposed of
+				if (camera != null)
+					camera.Dispose();
 			}
 		}
 		
