@@ -25,8 +25,8 @@ namespace System.Devices
 		/// </summary>
 		public GPhoto2IpcWrapper()
 		{
-			// Initializes the action block, which is used to synchronize the access t gPhoto2 (only one command may be executed at a
-			// time, because only one application may access the camera via USB at a time, also this ensures a causal chain of events
+			// Initializes the action block, which is used to synchronize the access t gPhoto2 (only one command may be executed at a time, because
+            // only one application may access the camera via USB at a time, also this ensures a causal chain of events
 			this.cameraActionBlock = new ActionBlock<GPhoto2Command>(new Func<GPhoto2Command, Task>(async gPhoto2Command =>
 				{
 					// Tries to executes the gPhoto2 command, if an exception is thrown, then the task is switched to the Faulted state
@@ -40,9 +40,9 @@ namespace System.Devices
 					}
 					catch (Exception exception)
 					{
-						// Since an exception was thrown, the task completion source is used to switch the underlying task to the
-						// Faulted state, so that the caller is able to catch the exception (otherwise the exception would be lost in
-						// the call stack and can never be caught by up-stream callers)
+						// Since an exception was thrown, the task completion source is used to switch the underlying task to the Faulted state, so
+                        // that the caller is able to catch the exception (otherwise the exception would be lost in the call stack and can never be
+                        // caught by up-stream callers)
 						gPhoto2Command.TaskCompletionSource.SetException(exception);
 					}
 				}));
@@ -53,22 +53,22 @@ namespace System.Devices
 		#region Private Fields
 
 		/// <summary>
-		/// Contains the action block, which is used to access the camera. Since only one command can be send to a camera at a time,
-		/// this action block is used, to synchronize the calls to the camera. All methods, sending commands to the camera can just
-		/// post commands to this action block and the action block guarantees that only one command is sent to the camera at a time.
+		/// Contains the action block, which is used to access the camera. Since only one command can be send to a camera at a time, this action
+        /// block is used, to synchronize the calls to the camera. All methods, sending commands to the camera can just post commands to this action
+        /// block and the action block guarantees that only one command is sent to the camera at a time.
 		/// </summary>
 		private ActionBlock<GPhoto2Command> cameraActionBlock;
 
 		/// <summary>
-		/// Contains the gPhoto2 interactive shell process. gPhoto2 supports an interactive shell mode, where the process is kept alive,
-		/// and commands can be executed by writing them to the standard input of the process. The interactive shell mode is used
-		/// where ever possible because it is much more performant because the overhead of starting a new process is removed.
+		/// Contains the gPhoto2 interactive shell process. gPhoto2 supports an interactive shell mode, where the process is kept alive, and commands
+        /// can be executed by writing them to the standard input of the process. The interactive shell mode is used where ever possible because it
+        /// is much more performant because the overhead of starting a new process is removed.
 		/// </summary>
 		private Process gPhoto2InteractiveShellProcess;
 
 		/// <summary>
-		/// Gets or sets the command line parameters, which are always appended to the command line parameters when executing a
-		/// command. This makes it easy to use command line parameters, that are always needed.
+		/// Gets or sets the command line parameters, which are always appended to the command line parameters when executing a command. This makes
+        /// it easy to use command line parameters, that are always needed.
 		/// </summary>
 		public string StandardCommandLineParameters { get; set; }
 
@@ -87,11 +87,14 @@ namespace System.Devices
 				// Sends the exit command to the interactive gPhoto2 shell process, which should quit the application
 				this.gPhoto2InteractiveShellProcess.StandardInput.WriteLine("exit");
 				
-				// Waits for the interactive gPhoto2 shell process to stop, if it has not finished after 100ms, then the process is
-				// killed forcefully
-				this.gPhoto2InteractiveShellProcess.WaitForExit(100);
-				this.gPhoto2InteractiveShellProcess.Kill();
-				this.gPhoto2InteractiveShellProcess.Close();
+				// Waits for the interactive gPhoto2 shell process to stop, if it has not finished after 100ms, then the process is killed forcefully
+                try
+                {
+                    this.gPhoto2InteractiveShellProcess.WaitForExit(100);
+                    this.gPhoto2InteractiveShellProcess.Kill();
+                    this.gPhoto2InteractiveShellProcess.Close();
+                }
+                catch (InvalidOperationException) { }
 				
 				// Sets the gPhoto2 interactive shell process to null, so that it is not disposed of twice
 				this.gPhoto2InteractiveShellProcess = null;
@@ -109,8 +112,8 @@ namespace System.Devices
 		/// <returns>Returns what the process wrote to the standard output.</returns>
 		public Task<string> ExecuteAsync(string commandLineParameters)
 		{
-			// Creates a gPhoto2 command, which is scheduled to run on the camera, it contains a task completion source, which resolves
-			// when the command has been executed 
+			// Creates a gPhoto2 command, which is scheduled to run on the camera, it contains a task completion source, which resolves when the
+            // command has been executed 
 			GPhoto2Command gPhoto2Command = new GPhoto2Command
 				{
 					Command = () => Task<string>.Run(() =>
@@ -129,8 +132,8 @@ namespace System.Devices
 							StandardOutputEncoding = Encoding.UTF8,
 						};
 
-						// Sets the language in which the application is to be started (the languages is set to american english in order
-						// to make it easier to parse the output regardless of the system language)
+						// Sets the language in which the application is to be started (the languages is set to american english in order to make it
+                        // easier to parse the output regardless of the system language)
 						if (processStartInfo.EnvironmentVariables.ContainsKey("LANG"))
 							processStartInfo.EnvironmentVariables["LANG"] = "en_US.UTF-8";
 						else
@@ -155,8 +158,8 @@ namespace System.Devices
 					})
 				};
 
-			// Schedules the camera command, so that it can run on the camera (it must be scheduled to ensure that only one command is
-			// executed at a time)
+			// Schedules the camera command, so that it can run on the camera (it must be scheduled to ensure that only one command is executed at
+            // a time)
 			this.cameraActionBlock.Post(gPhoto2Command);
 
 			// Awaits the execution of the scheduled camera command
@@ -208,14 +211,14 @@ namespace System.Devices
 		}
 		
 		/// <summary>
-		/// Executes the specified command line parameters in the gPhoto2 interactive shell process. This method of executing a command
-		/// has better performace, because the shell mode process has only to be spawned once and can then be reused.
+		/// Executes the specified command line parameters in the gPhoto2 interactive shell process. This method of executing a command has better
+        /// performace, because the shell mode process has only to be spawned once and can then be reused.
 		/// </summary>
 		/// <param name="commandLineParameters">The command line paramters, which are passed to the process.</param>
 		public Task<string> ExecuteInteractiveAsync(string commandLineParameters)
 		{
-			// Creates a gPhoto2 command, which is scheduled to run on the camera, it contains a task completion source, which resolves
-			// when the command has been executed 
+			// Creates a gPhoto2 command, which is scheduled to run on the camera, it contains a task completion source, which resolves when the
+            // command has been executed 
 			GPhoto2Command gPhoto2Command = new GPhoto2Command
 				{
 					Command = () => Task<string>.Run(() =>
@@ -236,8 +239,8 @@ namespace System.Devices
 								StandardOutputEncoding = Encoding.UTF8,
 							};
 			
-							// Sets the language in which the application is to be started (the languages is set to american english in order
-							// to make it easier to parse the output regardless of the system language)
+							// Sets the language in which the application is to be started (the languages is set to american english in order to make
+                            // it easier to parse the output regardless of the system language)
 							if (processStartInfo.EnvironmentVariables.ContainsKey("LANG"))
 								processStartInfo.EnvironmentVariables["LANG"] = "en_US.UTF-8";
 							else
@@ -252,9 +255,9 @@ namespace System.Devices
 						// Executes the specified command by writing it to the standard input of the gPhoto2 interactive shell process
 						this.gPhoto2InteractiveShellProcess.StandardInput.WriteLine(commandLineParameters);
 						
-						// Reads the output of the process line by line and returns it, the end of the output is detected by checking if
-						// the read output line starts with "gphoto2:" (in the interactive shell mode of gPhoto2 prints out the prompt
-						// "gphoto2:" followed by the current path)
+						// Reads the output of the process line by line and returns it, the end of the output is detected by checking if the read
+                        // output line starts with "gphoto2:" (in the interactive shell mode of gPhoto2 prints out the prompt "gphoto2:" followed
+                        // by the current path)
 						int outputCharacterCode;
 						int currentLineNumber = 1;
 						string currentOutputLine = string.Empty;
@@ -267,16 +270,16 @@ namespace System.Devices
 							// Checks what kind of character was read
 							if (outputCharacter == '\r')
 							{
-								// When a carriage return is read, then nothing is done (since the look-ahead is only one character and
-								// some systems need two characters for a new line, it is much safer to only watch for line feed and
-								// ignore the carriage return alltogether)
+								// When a carriage return is read, then nothing is done (since the look-ahead is only one character and some systems
+                                // need two characters for a new line, it is much safer to only watch for line feed and ignore the carriage return
+                                // alltogether)
 								continue;
 							}
 							else if (outputCharacter == '\n')
 							{
-								// When the read character is a line feed, then the current line is added to the result (but empty lines
-								// and the first two lines, which just contain the shell prompt and a repitition of the command that is
-								// to be executed, are not added, because their are not needed)
+								// When the read character is a line feed, then the current line is added to the result (but empty lines and the
+                                // first two lines, which just contain the shell prompt and a repitition of the command that is to be executed, are
+                                // not added, because their are not needed)
 								if (currentLineNumber > 2 && !string.IsNullOrWhiteSpace(currentOutputLine))
 									outputLines.Add(currentOutputLine);
 								
@@ -292,9 +295,9 @@ namespace System.Devices
 								currentOutputLine += outputCharacter;
 							}
 							
-							// Finally it is checked whether the output has reached its end (which is when the line contains the shell
-							// prompt "ghoto2:" and when it is not the first line, because the first line contains a shell prompt as
-							// well), if so then the reading of the output of gPhoto2 is finished
+							// Finally it is checked whether the output has reached its end (which is when the line contains the shell prompt
+                            // "ghoto2:" and when it is not the first line, because the first line contains a shell prompt as well), if so then the
+                            // reading of the output of gPhoto2 is finished
 							if (currentOutputLine.ToUpperInvariant().StartsWith("GPHOTO2:") && currentLineNumber > 1)
 								break;
 			            }
@@ -310,8 +313,8 @@ namespace System.Devices
 					})
 				};
 			
-			// Schedules the camera command, so that it can run on the camera (it must be scheduled to ensure that only one command is
-			// executed at a time)
+			// Schedules the camera command, so that it can run on the camera (it must be scheduled to ensure that only one command is executed at
+            // a time)
 			this.cameraActionBlock.Post(gPhoto2Command);
 
 			// Awaits the execution of the scheduled camera command
@@ -319,8 +322,8 @@ namespace System.Devices
 		}
 
 		/// <summary>
-		/// Executes the specified command line parameters in the gPhoto2 interactive shell process and parses the output. This method of
-		/// executing a command has better performace, because the shell mode process has only to be spawned once and can then be reused.
+		/// Executes the specified command line parameters in the gPhoto2 interactive shell process and parses the output. This method of executing a
+        /// command has better performace, because the shell mode process has only to be spawned once and can then be reused.
 		/// </summary>
 		/// <typeparam name="T">The type of the result of the parser.</typeparam>
 		/// <param name="commandLineParameters">The command line paramters, which are passed to the process.</param>
@@ -343,8 +346,8 @@ namespace System.Devices
 		}
 
 		/// <summary>
-		/// Executes the specified command line parameters in the gPhoto2 interactive shell process and parses the output. This method of
-		/// executing a command has better performace, because the shell mode process has only to be spawned once and can then be reused.
+		/// Executes the specified command line parameters in the gPhoto2 interactive shell process and parses the output. This method of executing a
+        /// command has better performace, because the shell mode process has only to be spawned once and can then be reused.
 		/// </summary>
 		/// <param name="commandLineParameters">The command line paramters, which are passed to the process.</param>
 		/// <param name="parser">A delegate that is used to parse the output of the process.</param>
@@ -369,8 +372,8 @@ namespace System.Devices
 		#region Nested Classes
 
 		/// <summary>
-		/// Represents a command, which is send to gPhoto2. This class encapsulates the information that is necessary to send a command
-		/// to gPhoto2. It is used as a wrapper, which is send to the action block, that synchronizes the calls to gPhoto2.
+		/// Represents a command, which is send to gPhoto2. This class encapsulates the information that is necessary to send a command to gPhoto2.
+        /// It is used as a wrapper, which is send to the action block, that synchronizes the calls to gPhoto2.
 		/// </summary>
 		private class GPhoto2Command
 		{
