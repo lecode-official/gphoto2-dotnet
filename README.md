@@ -95,7 +95,9 @@ mono Build/Release/TestProgram.exe
 ## Using gPhoto2.NET
 In order to be able to use gPhoto2.NET you have to add an assembly reference when compiling. You can do that using the following command:
 
+```bash
 mcs Test.cs /target:exe /out:TestProgram.exe /nologo /reference:System.Core.dll /reference:GPhotoSharp.dll /lib:Build/Release
+```
 
 ## Trouble Shooting
 If you run into problems, i.e. CameraException is thrown, although the camera is properly attached to your system, this might be due to the
