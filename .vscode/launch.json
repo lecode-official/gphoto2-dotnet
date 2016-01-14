@@ -1,0 +1,35 @@
+
+// Contains the launch configuration, which is used by Visual Studio Code to launch gPhoto2.NET with the debugger
+{
+    // This launch configuration was written for the version 0.2.0 and up of Visual Studio Code
+	"version": "0.2.0",
+    
+    // Contains the configuration for the launch
+	"configurations": [
+		{
+            // The name for the launch command, which is displayed in Visual Studio Code
+			"name": "Launch",
+            
+            // The application is run using Mono
+			"type": "mono",
+            
+            // Mono should launch the application
+			"request": "launch",
+            
+            // The test application is run
+			"program": "Build/Debug/TestProgram.exe",
+			
+            // No arguments are passed to the application
+            "args": [],
+            
+            // The relative workspace path of the application being debugged
+			"cwd": ".",
+            
+            // The relative workspace path of the runtime executable
+			"runtimeExecutable": null,
+			
+            // No environment variables are passed to the program being debugged
+            "env": {}
+		}
+	]
+}

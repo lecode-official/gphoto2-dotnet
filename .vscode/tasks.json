@@ -1,0 +1,30 @@
+
+// A task runner that calls a Makefile, which uses the Mono C# compiler (msc) to compile gPhoto2.NET
+{
+    // This tasks configuration file was made for version 0.1.0 and up of Visual Studio Code
+	"version": "0.1.0",
+    
+    // Sets the name of the task, which is displayed by Visual Studio Code
+    "taskName": "Build",
+    
+    // Makes this the default build command
+    "isBuildCommand": true,
+    
+    // Shows the output window only if unrecognized errors occur
+    "showOutput": "silent",
+    
+    // The command is make, because the actual building is done by the make program
+	"command": "make",
+
+	// The command is a shell script
+	"isShellCommand": true,
+
+    // The task is not watching the file system for changes and recompiles on save
+    "isWatching": false,
+    
+	// Sets the arguments for make, which invokes the "All" target that compiles the whole application in Debug and Release configuration
+	"args": ["All"],
+
+	// Uses the standard msCompile problem matcher to parse the output of the Mono C# compiler
+	"problemMatcher": "$msCompile"
+}
