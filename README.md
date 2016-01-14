@@ -1,8 +1,8 @@
 # gPhoto2.NET
 
 ## Introduction
-gPhoto2.NET is an easy-to-use .NET wrapper around the popular gPhoto2. It can be used to easily interface with DSLRs or other types of cameras from
-a .NET application. gPhoto2.NET was developed using Mono on Linux and was especially made for the use on Raspberry Pi.
+gPhoto2.NET is an easy-to-use .NET wrapper for the popular gPhoto2. It can be used to easily interface with DSLRs or other types of cameras from a
+.NET application. gPhoto2.NET was developed using Mono on Linux and was specifically made for the use on Raspberry Pi.
 
 ## Current Status
 The project is currently not yet ready for prime time. It is in an early alpha stage where a lot of vital features are still missing or do not work
@@ -49,7 +49,71 @@ finally
 ```
 
 ## Building the Project
-(Coming soon)
+First of all you should make sure that your system is up-to-date.
 
-## Setting up the Library on the Raspberry Pi
-(Coming soon)
+```bash
+sudo apt-get update
+sudo apt-get upgrade 
+```
+
+If you have rpi-update installed, then I recommend that you upgrade your Raspberry Pi firmware as well.
+
+```bash
+sudo rpi-update
+sudo reboot
+```
+
+There are a few prerequisites for building gPhoto2.NET on Linux. You'll need Mono as well as gPhoto2 in order for gPhoto2.NET to compile and
+properly function. If you do not want the latest version of either of them, then you can install them via apt-get. Since gPhoto2.NET uses some
+advanced features you'll probably need the mono-complete package.
+
+```bash
+sudo apt-get install mono-complete
+sudo apt-get install gphoto2
+```
+
+You can pull the latest version of the gPhoto2.NET repository from GitHub using the following command:
+
+```bash
+git pull https://github.com/lecode-official/gphoto2-dotnet.git
+```
+
+Now you are ready to build gPhoto2.NET. This will create a folder called "Build", which contains two folders "Release" and "Debug" which contain
+a release and a debug version of gPhoto2.NET respectively.
+
+```bash
+make All
+```
+
+Besides the gPhoto2.NET library, there is a test application. Attach a camera to your system and run the test application, to make sure that
+everything is working properly.
+
+```bash
+mono Build/Release/TestProgram.exe
+```
+
+## Using gPhoto2.NET
+In order to be able to use gPhoto2.NET you have to add an assembly reference when compiling. You can do that using the following command:
+
+mcs Test.cs /target:exe /out:TestProgram.exe /nologo /reference:System.Core.dll /reference:GPhotoSharp.dll /lib:Build/Release
+
+## Trouble Shooting
+If you run into problems, i.e. CameraException is thrown, although the camera is properly attached to your system, this might be due to the
+gvfs-gphoto2-volume-monitor, which comes pre-installed with several Linux distributions, including Raspbian. The gvfs-gphoto2-volume-monitor captures
+the USB port that the camera is attached to and therefore gPhoto2.NET can not access the camera. You'll have to kill the gvfs-gphoto2-volume-monitor
+process before you are able to use gPhoto2.NET. To find out if gvfs-gphoto2-volume-monitor is blocking you from accessing the camera you can use
+ps.
+
+```bash
+user@machine ~ $ ps -aux | grep gphoto
+user     1901  0.0  0.1 210060  6140 ?        Sl   21:06   0:00 /usr/lib/gvfs/gvfs-gphoto2-volume-monitor
+user     2350  0.0  0.0  13260  2152 pts/2    S+   21:10   0:00 grep --colour=auto gphoto
+```
+
+You can kill the process by calling:
+
+```bash
+user@machine ~ $ kill -SIGTERM 1901
+```
+
+Please make sure to replace the process ID with the process ID that you got from ps.
