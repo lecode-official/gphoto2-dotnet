@@ -50,8 +50,8 @@ namespace Application
 
 				// Gets all settings of the attached camera, cycles over them and prints out all settings and their current values
 				foreach (CameraSetting setting in camera.Settings)
-					Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}",
-						await setting.GetLabelAsync(), await setting.GetValueAsync()));
+					Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0} ({1}): {2}",
+						await setting.GetLabelAsync(), setting.Name, await setting.GetValueAsync()));
 			}
 			catch (CameraException exception)
 			{
