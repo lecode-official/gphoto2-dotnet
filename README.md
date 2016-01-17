@@ -15,8 +15,7 @@ The following example showcases how cameras that are attached to the system can 
 are retrieved an displayed on the screen.
 
 ```csharp
-// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the
-// gphoto2-dotnet should be wrapped in try-catch-clauses, gphoto2-dotnet always throws CameraException
+// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the gphoto2-dotnet should be wrapped in try-catch-clauses, gphoto2-dotnet always throws CameraException
 Camera camera = null;
 try
 {
