@@ -33,7 +33,7 @@ namespace Application
 		public static async Task MainAsync()
 		{
 			// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the
-            // gphoto2-dotnet should be wrapped in try-catch-clauses, gphoto2-dotnet always throws CameraException
+            // gphoto2-dotnet should be wrapped in try-catch-clauses
 			Camera camera = null;
 			try
 			{
