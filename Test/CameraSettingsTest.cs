@@ -12,8 +12,7 @@ using System.Threading.Tasks;
 namespace Application
 {
 	/// <summary>
-	/// Represents a test application, which gets the first camera attached to the system and prints out all settings of the camera
-	/// including their values.
+	/// Represents a test application, which gets the first camera attached to the system and prints out some information about the camera.
 	/// </summar>
 	public class CameraSettingsTest
 	{
@@ -33,8 +32,8 @@ namespace Application
 		/// </summary>
 		public static async Task MainAsync()
 		{
-			// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all
-			// calls to the gphoto2-dotnet should be wrapped in try-catch-clauses, gphoto2-dotnet always throws CameraException
+			// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the
+            // gphoto2-dotnet should be wrapped in try-catch-clauses, gphoto2-dotnet always throws CameraException
 			Camera camera = null;
 			try
 			{
@@ -48,10 +47,8 @@ namespace Application
 					return;
 				}
 
-				// Gets all settings of the attached camera, cycles over them and prints out all settings and their current values
-				foreach (CameraSetting setting in camera.Settings)
-					Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0} ({1}): {2}",
-						await setting.GetLabelAsync(), setting.Name, await setting.GetValueAsync()));
+				// Gathers some information about the camera and prints it out
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Owner name: {0}", await camera.GetOwnerNameAsync()));
 			}
 			catch (CameraException exception)
 			{

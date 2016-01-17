@@ -118,6 +118,75 @@ namespace System.Devices
 		
 		#endregion
 
+		#region Public Static Methods
+
+		/// <summary>
+		/// Iterates all cameras attached to the system and initializes them.
+		/// </summary>
+		/// <returns>Returns a read-only list of all cameras attached to the system.</returns>
+		public static async Task<IEnumerable<Camera>> GetCamerasAsync()
+		{
+		    // Creates a new IPC wrapper, which can be used to interface with gPhoto2
+		    GPhoto2IpcWrapper gPhoto2IpcWrapper = new GPhoto2IpcWrapper
+			{
+				StandardCommandLineParameters = "--quiet"
+			};
+		    
+			// Gets all the cameras attached to the computer
+			List<Camera> createdCameras = await gPhoto2IpcWrapper.ExecuteAsync("--auto-detect", output =>
+				{
+					// Creates a new result list for the cameras
+					List<Camera> cameras = new List<Camera>();
+
+					// Creates a string reader, so that the output of gPhoto2 can be read line by line
+					using (StringReader stringReader = new StringReader(output))
+					{
+						// Dismisses the first two lines because they only contain the header of the table containing the cameras
+						stringReader.ReadLine();
+						stringReader.ReadLine();
+
+						// The line contains the name of the camera and its port separated by multiple whitespaces, this regular
+						//expression is used to split them
+						Regex cameraAndPortRegex = new Regex("^(?<Name>((\\S\\s\\S)|\\S)+)\\s\\s+(?<Port>((\\S\\s\\S)|\\S)+)$");
+
+						// Cycles over the rest of the lines (each line representes a row in the table containing the cameras)
+						string line;
+						while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
+						{
+							// Trims the line, because it might have leading or trailing whitespaces (the regular expression would be
+							// more complex with them)
+							line = line.Trim();
+
+							// Reads the name and the port of the camera
+							Match match = cameraAndPortRegex.Match(line);
+							string cameraName = match.Groups["Name"].Value;
+							string cameraPort = match.Groups["Port"].Value;
+
+							// If either the camera name or the port is null or whitespace, then the camera could not be matched
+							if (string.IsNullOrWhiteSpace(cameraName) || string.IsNullOrWhiteSpace(cameraPort))
+								continue;
+
+							// Creates the new camera and adds it to the result set
+							Camera camera = new Camera(cameraName, cameraPort);
+							cameras.Add(camera);
+						}
+					}
+
+					// Returns all cameras that have been found by gPhoto2
+					return Task.FromResult(cameras);
+				});
+
+			// Initializes the cameras that have been created (since all camera commands are executed in an action block, they must not
+			// be nested, because otherwise they would end up in a dead lock, therefore the initialization is done outside of the
+			// camera command)
+			await Task.WhenAll(createdCameras.Select(createdCamera => createdCamera.InitializeAsync()));
+
+			// Returns the initialized cameras
+			return createdCameras;
+		}
+
+		#endregion
+        
 		#region Private Methods
 
 		/// <summary>
@@ -193,74 +262,26 @@ namespace System.Devices
 		}
 
 		#endregion
-
-		#region Public Static Methods
-
-		/// <summary>
-		/// Iterates all cameras attached to the system and initializes them.
-		/// </summary>
-		/// <returns>Returns a read-only list of all cameras attached to the system.</returns>
-		public static async Task<IEnumerable<Camera>> GetCamerasAsync()
-		{
-		    // Creates a new IPC wrapper, which can be used to interface with gPhoto2
-		    GPhoto2IpcWrapper gPhoto2IpcWrapper = new GPhoto2IpcWrapper
-			{
-				StandardCommandLineParameters = "--quiet"
-			};
-		    
-			// Gets all the cameras attached to the computer
-			List<Camera> createdCameras = await gPhoto2IpcWrapper.ExecuteAsync("--auto-detect", output =>
-				{
-					// Creates a new result list for the cameras
-					List<Camera> cameras = new List<Camera>();
-
-					// Creates a string reader, so that the output of gPhoto2 can be read line by line
-					using (StringReader stringReader = new StringReader(output))
-					{
-						// Dismisses the first two lines because they only contain the header of the table containing the cameras
-						stringReader.ReadLine();
-						stringReader.ReadLine();
-
-						// The line contains the name of the camera and its port separated by multiple whitespaces, this regular
-						//expression is used to split them
-						Regex cameraAndPortRegex = new Regex("^(?<Name>((\\S\\s\\S)|\\S)+)\\s\\s+(?<Port>((\\S\\s\\S)|\\S)+)$");
-
-						// Cycles over the rest of the lines (each line representes a row in the table containing the cameras)
-						string line;
-						while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
-						{
-							// Trims the line, because it might have leading or trailing whitespaces (the regular expression would be
-							// more complex with them)
-							line = line.Trim();
-
-							// Reads the name and the port of the camera
-							Match match = cameraAndPortRegex.Match(line);
-							string cameraName = match.Groups["Name"].Value;
-							string cameraPort = match.Groups["Port"].Value;
-
-							// If either the camera name or the port is null or whitespace, then the camera could not be matched
-							if (string.IsNullOrWhiteSpace(cameraName) || string.IsNullOrWhiteSpace(cameraPort))
-								continue;
-
-							// Creates the new camera and adds it to the result set
-							Camera camera = new Camera(cameraName, cameraPort);
-							cameras.Add(camera);
-						}
-					}
-
-					// Returns all cameras that have been found by gPhoto2
-					return Task.FromResult(cameras);
-				});
-
-			// Initializes the cameras that have been created (since all camera commands are executed in an action block, they must not
-			// be nested, because otherwise they would end up in a dead lock, therefore the initialization is done outside of the
-			// camera command)
-			await Task.WhenAll(createdCameras.Select(createdCamera => createdCamera.InitializeAsync()));
-
-			// Returns the initialized cameras
-			return createdCameras;
-		}
-
-		#endregion
+        
+        #region Public Methods
+        
+        /// <summary>
+        /// Retrieves the name of the owner of the camera.
+        /// </summary>
+        /// <exception cref="CameraSettingNotSupportedException">If the camera setting is not supported by the camera, then a
+        /// <see cref="CameraSettingNotSupportedException"/> exception is thrown.</exception>
+        /// <returns>Returns the name of the owner of the camera.</returns>
+        public async Task<string> GetOwnerNameAsync()
+        {
+            // Gets the owner name camera setting and checks if it exists, if it does not exist, then an exception is thrown
+            CameraSetting ownerNameCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.OwnerName);
+            if (ownerNameCameraSetting == null)
+                throw new CameraSettingException("The camera setting for the owner name is not supported by this camera");
+            
+            // Retrieves the owner name and returns it
+            return await ownerNameCameraSetting.GetValueAsync();
+        }
+        
+        #endregion
 	}
 }

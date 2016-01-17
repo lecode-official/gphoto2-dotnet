@@ -5,7 +5,7 @@ RELEASE                   = Release
 DEBUG                     = Debug
 
 # Contains the input files for the gPhotoSharp library
-GPHOTOSHARPINPUTFILES     = Source/AssemblyInfo.cs Source/Camera.cs Source/CameraException.cs Source/CameraSetting.cs Source/CameraSettingType.cs Source/GPhoto2IpcWrapper.cs
+GPHOTOSHARPINPUTFILES     = Source/AssemblyInfo.cs Source/Camera.cs Source/CameraException.cs Source/CameraSetting.cs Source/CameraSettingException.cs Source/CameraSettings.cs Source/CameraSettingType.cs Source/GPhoto2IpcWrapper.cs
 
 # Contains the input files for the gPhotoSharp test applications
 TESTAPPLICATIONINPUTFILES = Test/CameraSettingsTest.cs
