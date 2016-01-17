@@ -15,36 +15,43 @@ The following example showcases how cameras that are attached to the system can 
 are retrieved an displayed on the screen.
 
 ```csharp
-// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all
-// calls to the gphoto2-dotnet should be wrapped in try-catch-clauses, gphoto2-dotnet always throws CameraException
+// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the
+// gphoto2-dotnet should be wrapped in try-catch-clauses, gphoto2-dotnet always throws CameraException
 Camera camera = null;
 try
 {
-	// Gets the first camera attached to the computer
-	camera = (await Camera.GetCamerasAsync()).FirstOrDefault();
-	
-	// Checks if a camera was found, if no camera was found, then an error message is printed out and the program is quit
-	if (camera == null)
-	{
-		Console.WriteLine("No camera detected!");
-		return;
-	}
+    // Gets the first camera attached to the computer
+    camera = (await Camera.GetCamerasAsync()).FirstOrDefault();
+    
+    // Checks if a camera was found, if no camera was found, then an error message is printed out and the program is quit
+    if (camera == null)
+    {
+        Console.WriteLine("No camera detected!");
+        return;
+    }
 
-	// Gets all settings of the attached camera, cycles over them and prints out all settings and their current values
-	foreach (CameraSetting setting in camera.Settings)
-		Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}",
-			await setting.GetLabelAsync(), await setting.GetValueAsync()));
+    // Gathers some information about the camera and prints it out
+    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Manufacturer: {0}", await camera.GetManufacturerAsync()));
+    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Camera model: {0}", await camera.GetCameraModelAsync()));
+    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Lens name: {0}", await camera.GetLensNameAsync()));
+    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Battery level: {0}", await camera.GetBatteryLevelAsync()));
+    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Owner name: {0}", await camera.GetOwnerNameAsync()));
 }
 catch (CameraException exception)
 {
-	// If an exception was caught, e.g. because the camera was unplugged, an error message is printed out
-	Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Details));
+    // If an exception was caught, e.g. because the camera was unplugged, an error message is printed out
+    Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Details));
+}
+catch (CameraSettingException exception)
+{
+    // If any of the camera settings, that are retrieved do not exist, then an error message is printed out
+    Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Message));
 }
 finally
 {
-	// If a camera was acquired, then it is safely disposed of
-	if (camera != null)
-		camera.Dispose();
+    // If a camera was acquired, then it is safely disposed of
+    if (camera != null)
+        camera.Dispose();
 }
 ```
 

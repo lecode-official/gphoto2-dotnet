@@ -48,6 +48,10 @@ namespace Application
 				}
 
 				// Gathers some information about the camera and prints it out
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Manufacturer: {0}", await camera.GetManufacturerAsync()));
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Camera model: {0}", await camera.GetCameraModelAsync()));
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Lens name: {0}", await camera.GetLensNameAsync()));
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Battery level: {0}", await camera.GetBatteryLevelAsync()));
                 Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Owner name: {0}", await camera.GetOwnerNameAsync()));
 			}
 			catch (CameraException exception)
@@ -55,6 +59,11 @@ namespace Application
 				// If an exception was caught, e.g. because the camera was unplugged, an error message is printed out
 				Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Details));
 			}
+            catch (CameraSettingException exception)
+            {
+                // If any of the camera settings, that are retrieved do not exist, then an error message is printed out
+				Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Message));
+            }
 			finally
 			{
 				// If a camera was acquired, then it is safely disposed of
