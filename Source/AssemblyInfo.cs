@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("LeCode")]
 [assembly: AssemblyProduct("gPhoto2.NET")]
-[assembly: AssemblyCopyright("Copyright © David Neumann 2015")]
+[assembly: AssemblyCopyright("Copyright © David Neumann 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 
 #region Assembly Version Information
 
-[assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("0.1.0.*")]
+[assembly: AssemblyFileVersion("0.1.0.0")]
 
 #endregion

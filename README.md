@@ -7,19 +7,19 @@ gPhoto2.NET is an easy-to-use .NET wrapper for the popular gPhoto2. It can be us
 ## Current Status
 The project is currently not yet ready for prime time. It is in an early alpha stage where a lot of vital features are still missing or do not work
 as expected. Ultimately the library should be usable on Raspberry Pi, but I am not sure if it runs or builds on a Raspberry Pi right now, since the
-project is currently developed in a Linux desktop environment. Any help, e.g. feature request or bug reports, is greatly appreciated. Please use
+project is currently developed in a Linux desktop environment. Any help, e.g. feature requests or bug reports, is greatly appreciated. Please use
 GitHub's issue system for that. If you want to improve on my work or fix bugs, then feel free to fork this project and send me a pull request.
 
 ## Using the Library
-The following example showcases how cameras that are attached to the system can be enumerated. After retrieving the first camera all camera settings
-are retrieved an displayed on the screen.
+The following example showcases how cameras that are attached to the system can be enumerated. After retrieving the first camera all an image is
+captured and stored on the camera.
 
 ```csharp
 // Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the gphoto2-dotnet should be wrapped in try-catch-clauses
 Camera camera = null;
 try
 {
-    // Gets the first camera attached to the computer
+    // Gets the first camera attached to the system
     camera = (await Camera.GetCamerasAsync()).FirstOrDefault();
     
     // Checks if a camera was found, if no camera was found, then an error message is printed out and the program is quit
@@ -29,12 +29,9 @@ try
         return;
     }
 
-    // Gathers some information about the camera and prints it out
-    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Manufacturer: {0}", await camera.GetManufacturerAsync()));
-    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Camera model: {0}", await camera.GetCameraModelAsync()));
-    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Lens name: {0}", await camera.GetLensNameAsync()));
-    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Battery level: {0}", await camera.GetBatteryLevelAsync()));
-    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Owner name: {0}", await camera.GetOwnerNameAsync()));
+    // Captures an image and stores it on the camera
+    string fileName = await camera.CaptureImageAsync();
+    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Image captured and stored on the camera: {0}", fileName));
 }
 catch (CameraException exception)
 {
@@ -62,7 +59,7 @@ sudo apt-get update
 sudo apt-get upgrade 
 ```
 
-If you have rpi-update installed, then I recommend that you upgrade your Raspberry Pi firmware as well.
+If you have `rpi-update` installed, then I recommend that you upgrade your Raspberry Pi firmware as well.
 
 ```bash
 sudo rpi-update
@@ -70,8 +67,8 @@ sudo reboot
 ```
 
 There are a few prerequisites for building gPhoto2.NET on Linux. You'll need Mono as well as gPhoto2 in order for gPhoto2.NET to compile and
-properly function. If you do not want the latest version of either of them, then you can install them via apt-get. Since gPhoto2.NET uses some
-advanced features you'll probably need the mono-complete package.
+properly function. If you do not want the latest version of either of them, then you can install them via `apt-get`. Since gPhoto2.NET uses some
+advanced features you'll probably need the `mono-complete` package.
 
 ```bash
 sudo apt-get install mono-complete
@@ -91,11 +88,11 @@ a release and a debug version of gPhoto2.NET respectively.
 make All
 ```
 
-Besides the gPhoto2.NET library, there is a test application. Attach a camera to your system and run the test application, to make sure that
-everything is working properly.
+Besides the gPhoto2.NET library, there are several test applications. Attach a camera to your system and run the test applications, to make sure
+that everything is working properly, e.g. like this:
 
 ```bash
-mono Build/Release/TestProgram.exe
+mono Build/Release/ImageCapturingTest.exe
 ```
 
 ## Using gPhoto2.NET
@@ -106,11 +103,11 @@ mcs Test.cs /target:exe /out:TestProgram.exe /nologo /reference:System.Core.dll 
 ```
 
 ## Trouble Shooting
-If you run into problems, i.e. CameraException is thrown, although the camera is properly attached to your system, this might be due to the
-gvfs-gphoto2-volume-monitor, which comes pre-installed with several Linux distributions, including Raspbian. The gvfs-gphoto2-volume-monitor captures
-the USB port that the camera is attached to and therefore gPhoto2.NET can not access the camera. You'll have to kill the gvfs-gphoto2-volume-monitor
-process before you are able to use gPhoto2.NET. To find out if gvfs-gphoto2-volume-monitor is blocking you from accessing the camera you can use
-ps.
+If you run into problems, i.e. `CameraException` is thrown, although the camera is properly attached to your system, this might be due to the
+`gvfs-gphoto2-volume-monitor`, which comes pre-installed with several Linux distributions, including Raspbian. The `gvfs-gphoto2-volume-monitor`
+captures the USB port that the camera is attached to and therefore gPhoto2.NET can not access the camera. You'll have to kill the
+`gvfs-gphoto2-volume-monitor` process before you are able to use gPhoto2.NET. To find out if `gvfs-gphoto2-volume-monitor` is blocking you from
+accessing the camera you can use `ps`:
 
 ```bash
 user@machine ~ $ ps -aux | grep gphoto
@@ -124,4 +121,4 @@ You can kill the process by calling:
 user@machine ~ $ kill -SIGTERM 1901
 ```
 
-Please make sure to replace the process ID with the process ID that you got from ps.
+Please make sure to replace the process ID with the process ID that you got from `ps`.

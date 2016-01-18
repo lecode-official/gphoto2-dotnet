@@ -12,14 +12,14 @@ using System.Threading.Tasks;
 namespace Application
 {
 	/// <summary>
-	/// Represents a test application, which gets the first camera attached to the system and prints out some information about the camera.
+	/// Represents a test application, which gets the first camera attached to the system and takes a picture.
 	/// </summar>
 	public class CameraSettingsTest
 	{
 		#region Public Static Methods
 		
 		/// <summary>
-		/// The entrypoint for the camera settings test program.
+		/// The entrypoint for the image capturing test program.
 		/// </summar>
 		public static void Main()
 		{
@@ -28,7 +28,7 @@ namespace Application
 		}
 
 		/// <summary>
-		/// The asynchronous entrypoint to the camera settings test program.
+		/// The asynchronous entrypoint to the image capturing test program.
 		/// </summary>
 		public static async Task MainAsync()
 		{
@@ -47,12 +47,9 @@ namespace Application
 					return;
 				}
 
-				// Gathers some information about the camera and prints it out
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Manufacturer: {0}", await camera.GetManufacturerAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Camera model: {0}", await camera.GetCameraModelAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Lens name: {0}", await camera.GetLensNameAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Battery level: {0}", await camera.GetBatteryLevelAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Owner name: {0}", await camera.GetOwnerNameAsync()));
+				// Captures an image and stores it on the camera
+                string fileName = await camera.CaptureImageAsync();
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Image captured and stored on the camera: {0}", fileName));
 			}
 			catch (CameraException exception)
 			{

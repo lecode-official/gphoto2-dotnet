@@ -266,6 +266,30 @@ namespace System.Devices
         #region Public Methods
         
         /// <summary>
+        /// Captures an image and stores it on the camera.
+        /// <summary>
+        /// <returns>Returns the file name of the image that was captured on the storage of the camera.</returns>
+        public async Task<string> CaptureImageAsync()
+        {
+            // Executes the image capturing on the camera and retrieves the file name of the image that was captured
+            return await this.gPhoto2IpcWrapper.ExecuteInteractiveAsync("capture-image", output =>
+                {
+                    // Creates a regular expression that parses the file name of the image that was captured
+                    Regex fileNameRegex = new Regex("^New file is in location (?<FileName>(.+)) on the camera$");
+                    
+                    // Parses the output of the camera using the file name regular expression and checks if a file name could be retrieved, if not
+                    // then an exception is thrown
+                    Match match = fileNameRegex.Match(output.Trim());
+					string parsedFileName = match.Groups["FileName"].Value;
+                    if (string.IsNullOrWhiteSpace(parsedFileName))
+                        throw new CameraException("The image could not be properly captured, because of an unknown reason.");
+                    
+                    // Returns the file name of the image that was captured
+                    return Task.FromResult(parsedFileName);
+                });
+        }
+        
+        /// <summary>
         /// Retrieves the name of the owner of the camera.
         /// </summary>
         /// <exception cref="CameraSettingNotSupportedException">If the camera setting is not supported by the camera, then a
