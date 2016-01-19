@@ -54,14 +54,8 @@ namespace Application
                 Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Battery level: {0}", await camera.GetBatteryLevelAsync()));
                 Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Owner name: {0}", await camera.GetOwnerNameAsync()));
                 
-                // Gets all information available about the ISO speed of the camera
-                CameraSetting cameraSetting = camera.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.IsoSpeed);
-                Console.WriteLine(cameraSetting.Name);
-                Console.WriteLine(await cameraSetting.GetTypeAsync());
-                Console.WriteLine(await cameraSetting.GetLabelAsync());
-                Console.WriteLine(await cameraSetting.GetValueAsync());
-                foreach (string choice in await cameraSetting.GetChoicesAsync())
-                    Console.WriteLine(choice);
+                // Gets some information about the image settings of the camera and prints it out
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "ISO speed: {0}", await camera.GetIsoSpeedAsync()));
 			}
 			catch (CameraException exception)
 			{
