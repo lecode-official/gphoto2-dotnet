@@ -307,6 +307,21 @@ namespace System.Devices
         }
         
         /// <summary>
+        /// Sets the name of the owner of the camera.
+        /// </summary>
+        /// <param name="name">The new name of the owner of the camera, that is to be set.</param>
+        public async Task SetOwnerNameAsync(string name)
+        {
+            // Gets the owner name camera setting and checks if it exists, if it does not exist, then an exception is thrown
+            CameraSetting ownerNameCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.OwnerName);
+            if (ownerNameCameraSetting == null)
+                throw new CameraSettingException("The camera setting for the owner name is not supported by this camera");
+
+            // Sets the new name of the owner of the camera
+            await ownerNameCameraSetting.SetValueAsync(name);
+        }
+        
+        /// <summary>
         /// Retrieves the name of the manufacturer of the camera.
         /// </summary>
         /// <exception cref="CameraSettingNotSupportedException">If the camera setting is not supported by the camera, then a
