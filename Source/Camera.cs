@@ -300,7 +300,7 @@ namespace System.Devices
             // Gets the owner name camera setting and checks if it exists, if it does not exist, then an exception is thrown
             CameraSetting ownerNameCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.OwnerName);
             if (ownerNameCameraSetting == null)
-                throw new CameraSettingException("The camera setting for the owner name is not supported by this camera");
+                throw new CameraException("The camera setting for the owner name is not supported by this camera");
             
             // Retrieves the owner name and returns it
             return await ownerNameCameraSetting.GetValueAsync();
@@ -315,7 +315,7 @@ namespace System.Devices
             // Gets the owner name camera setting and checks if it exists, if it does not exist, then an exception is thrown
             CameraSetting ownerNameCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.OwnerName);
             if (ownerNameCameraSetting == null)
-                throw new CameraSettingException("The camera setting for the owner name is not supported by this camera");
+                throw new CameraException("The camera setting for the owner name is not supported by this camera");
 
             // Sets the new name of the owner of the camera
             await ownerNameCameraSetting.SetValueAsync(name);
@@ -332,7 +332,7 @@ namespace System.Devices
             // Gets the manufacturer camera setting and checks if it exists, if it does not exist, then an exception is thrown
             CameraSetting manufacturerCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.Manufacturer);
             if (manufacturerCameraSetting == null)
-                throw new CameraSettingException("The camera setting for the camera manufacturer is not supported by this camera");
+                throw new CameraException("The camera setting for the camera manufacturer is not supported by this camera");
             
             // Retrieves the manufacturer and returns it
             return await manufacturerCameraSetting.GetValueAsync();
@@ -349,7 +349,7 @@ namespace System.Devices
             // Gets the camera model setting and checks if it exists, if it does not exist, then an exception is thrown
             CameraSetting cameraModelCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.CameraModel);
             if (cameraModelCameraSetting == null)
-                throw new CameraSettingException("The camera setting for the camera model is not supported by this camera");
+                throw new CameraException("The camera setting for the camera model is not supported by this camera");
             
             // Retrieves the camera model and returns it
             return await cameraModelCameraSetting.GetValueAsync();
@@ -366,7 +366,7 @@ namespace System.Devices
             // Gets the lens name camera setting and checks if it exists, if it does not exist, then an exception is thrown
             CameraSetting lensNameCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.LensName);
             if (lensNameCameraSetting == null)
-                throw new CameraSettingException("The camera setting for the lens name is not supported by this camera");
+                throw new CameraException("The camera setting for the lens name is not supported by this camera");
             
             // Retrieves the name of the lens of the camera and returns it
             return await lensNameCameraSetting.GetValueAsync();
@@ -383,7 +383,7 @@ namespace System.Devices
             // Gets the battery level camera setting and checks if it exists, if it does not exist, then an exception is thrown
             CameraSetting batteryLevelCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.BatteryLevel);
             if (batteryLevelCameraSetting == null)
-                throw new CameraSettingException("The camera setting for the battery level is not supported by this camera");
+                throw new CameraException("The camera setting for the battery level is not supported by this camera");
             
             // Retrieves the battery level of the camera and returns it
             return await batteryLevelCameraSetting.GetValueAsync();

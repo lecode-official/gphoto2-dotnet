@@ -38,11 +38,6 @@ catch (CameraException exception)
     // If an exception was caught, e.g. because the camera was unplugged, an error message is printed out
     Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Details));
 }
-catch (CameraSettingException exception)
-{
-    // If any of the camera settings, that are retrieved do not exist, then an error message is printed out
-    Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Message));
-}
 finally
 {
     // If a camera was acquired, then it is safely disposed of
