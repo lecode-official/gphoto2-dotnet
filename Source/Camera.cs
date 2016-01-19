@@ -289,6 +289,46 @@ namespace System.Devices
                 });
         }
         
+        /// <summary>
+        /// Captures the specified amount of images in the specified interval.
+        /// </summary>
+        /// <param name="amount">The number of images that are to be captured.</param>
+        /// <param name="interval">The amount of time that is waited between capturing two images.</param>
+        /// <exception cref="">If the amount of images or the interval is negative, then a <see cref="CameraException"/> is thrown.</exception>
+        public async Task CaptureImagesAsync(int amount, TimeSpan interval)
+        {
+            // Checks if the amount of image or the interval is negative, if so then an exception is thrown
+            if (amount < 0)
+                throw new CameraException("The amount of images must not be negative.");
+            if (interval < TimeSpan.Zero)
+                throw new CameraException("The interval between the capturing of two images must not be negative.");
+            
+            // If the amount of images that are to be taken is 0, then nothing is done
+            if (amount == 0)
+                return;
+            
+            // Takes the specified amount of images
+            for (int i = 0; i < amount; i++)
+            {
+                // Captures the image
+                await this.CaptureImageAsync();
+                
+                // Checks if this is the last image that is to be taken, if not, then the interval is waited
+                if (i < amount - 1 && interval > TimeSpan.Zero)
+                    await Task.Delay(interval);
+            }
+        }
+        
+        /// <summary>
+        /// Captures the specified amount of images.
+        /// </summary>
+        /// <param name="amount">The number of images that are to be captured.</param>
+        /// <exception cref="">If the amount of images that are to be cpatured is negative, then a <see cref="CameraException"/> is thrown.</exception>
+        public Task CaptureImagesAsync(int amount)
+        {
+            return this.CaptureImagesAsync(amount, TimeSpan.Zero);
+        }
+        
         #endregion
         
         #region Public Image Settings Methods
