@@ -263,7 +263,7 @@ namespace System.Devices
 
 		#endregion
         
-        #region Public Methods
+        #region Public Image Capturing Methods
         
         /// <summary>
         /// Captures an image and stores it on the camera.
@@ -289,11 +289,69 @@ namespace System.Devices
                 });
         }
         
+        #endregion
+        
+        #region Public Image Settings Methods
+        
+        /// <summary>
+        /// Retrieves the current ISO speed of the camera.
+        /// </summary>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
+        /// <returns>Returns the current ISO speed of the camera. If the ISO speed is set to Auto, then 0 is returned.</returns>
+        public async Task<int> GetIsoSpeedAsync()
+        {
+            // Gets the ISO speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
+            CameraSetting isoSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.IsoSpeed);
+            if (isoSpeedCameraSetting == null)
+                throw new CameraException("The camera setting for the ISO speed is not supported by this camera");
+            
+            // Retrieves the current ISO speed of the camera
+            string currentIsoSpeedTextualRepresentation = await isoSpeedCameraSetting.GetValueAsync();
+            
+            // Checks if the ISO speed is set to Auto, if so then 0 is returned, otherwise the ISO speed is converted to an integer and returned
+            if (currentIsoSpeedTextualRepresentation.ToUpperInvariant() == "AUTO")
+                return IsoSpeeds.Auto;
+            else
+                return Convert.ToInt32(currentIsoSpeedTextualRepresentation);
+        }
+        
+        /// <summary>
+        /// Sets the ISO speed of the camera.
+        /// </summary>
+        /// <param name="isoSpeed">The ISO speed to which the camera is to be set. An ISO speed of 0 sets the camera to an Auto ISO speed,</param>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
+        public async Task SetIsoSpeedAsync(int isoSpeed)
+        {
+            // Gets the ISO speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
+            CameraSetting isoSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.IsoSpeed);
+            if (isoSpeedCameraSetting == null)
+                throw new CameraException("The camera setting for the ISO speed is not supported by this camera");
+            
+            // Tries to set the new ISO speed, if an exception is thrown, then the ISO speed is not supported by the camera
+            try
+            {
+                await isoSpeedCameraSetting.SetValueAsync(isoSpeed == 0 ? "Auto" : isoSpeed.ToString());
+            }
+            catch (CameraException exception)
+            {
+                throw new CameraException(string.Format(CultureInfo.InvariantCulture, "The ISO speed of {0} is not supported by the camera.", isoSpeed == 0 ? "Auto" : isoSpeed.ToString()), exception);
+            }
+        }
+        
+        #endregion
+        
+        #region Public Camera Settings Methods
+        
         /// <summary>
         /// Retrieves the name of the owner of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">If the camera setting is not supported by the camera, then a
-        /// <see cref="CameraSettingNotSupportedException"/> exception is thrown.</exception>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
         /// <returns>Returns the name of the owner of the camera.</returns>
         public async Task<string> GetOwnerNameAsync()
         {
@@ -310,6 +368,9 @@ namespace System.Devices
         /// Sets the name of the owner of the camera.
         /// </summary>
         /// <param name="name">The new name of the owner of the camera, that is to be set.</param>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
         public async Task SetOwnerNameAsync(string name)
         {
             // Gets the owner name camera setting and checks if it exists, if it does not exist, then an exception is thrown
@@ -324,8 +385,9 @@ namespace System.Devices
         /// <summary>
         /// Retrieves the name of the manufacturer of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">If the camera setting is not supported by the camera, then a
-        /// <see cref="CameraSettingNotSupportedException"/> exception is thrown.</exception>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
         /// <returns>Returns the name of the manufacturer of the camera.</returns>
         public async Task<string> GetManufacturerAsync()
         {
@@ -338,11 +400,16 @@ namespace System.Devices
             return await manufacturerCameraSetting.GetValueAsync();
         }
         
+        #endregion
+        
+        #region Public Camera Status Methods
+        
         /// <summary>
         /// Retrieves the name of the camera model.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">If the camera setting is not supported by the camera, then a
-        /// <see cref="CameraSettingNotSupportedException"/> exception is thrown.</exception>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
         /// <returns>Returns the name of the camera model.</returns>
         public async Task<string> GetCameraModelAsync()
         {
@@ -358,8 +425,9 @@ namespace System.Devices
         /// <summary>
         /// Retrieves the name of the lens of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">If the camera setting is not supported by the camera, then a
-        /// <see cref="CameraSettingNotSupportedException"/> exception is thrown.</exception>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
         /// <returns>Returns the name of the lens of the camera.</returns>
         public async Task<string> GetLensNameAsync()
         {
@@ -375,8 +443,9 @@ namespace System.Devices
         /// <summary>
         /// Retrieves the battery level of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">If the camera setting is not supported by the camera, then a
-        /// <see cref="CameraSettingNotSupportedException"/> exception is thrown.</exception>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
         /// <returns>Returns the battery level of the camera.</returns>
         public async Task<string> GetBatteryLevelAsync()
         {
