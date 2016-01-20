@@ -10,9 +10,6 @@
     // Makes this the default build command
     "isBuildCommand": true,
     
-    // Always shows the output window, so that the error messages from the compiler can be seen
-    "showOutput": "always",
-    
     // The command is make, because the actual building is done by the make program
 	"command": "make",
 

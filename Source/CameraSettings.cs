@@ -80,6 +80,16 @@ namespace System.Devices
         public const string ExposureCompensation = "/main/imgsettings/exposurecompensation";
         
         /// <summary>
+        /// Contains the name of the camera setting for the shutter speed of the camera.
+        /// </summary>
+        public const string ShutterSpeed = "/main/capturesettings/shutterspeed";
+        
+        /// <summary>
+        /// Contains the name of the camera setting for the aperture of the camera.
+        /// </summary>
+        public const string Aperture = "/main/capturesettings/aperture";
+        
+        /// <summary>
         /// Contains the name of the camera setting for the focus mode of the camera.
         /// </summary>
         public const string FocusMode = "/main/capturesettings/focusmode";
