@@ -382,6 +382,27 @@ namespace System.Devices
             }
         }
         
+        /// <summary>
+        /// Gets all ISO speeds, that are supported by the camera.
+        /// </summary>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
+        /// <returns>
+        /// Returns a list of all the ISO speeds that are supported by the camera. The ISO speed 0 means that the camera automatically detects the
+        /// correct ISO speed for the current lighting conditions (Auto).
+        /// </returns>
+        public async Task<IEnumerable<int>> GetSupportedIsoSpeedsAsync()
+        {
+            // Gets the ISO speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
+            CameraSetting isoSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.IsoSpeed);
+            if (isoSpeedCameraSetting == null)
+                throw new CameraException("The camera setting for the ISO speed is not supported by this camera");
+            
+            // Gets all the choices, converts them to intergers and returns them
+            return (await isoSpeedCameraSetting.GetChoicesAsync()).Select(choice => choice.ToUpperInvariant() == "AUTO" ? 0 : Convert.ToInt32(choice));
+        }
+        
         #endregion
         
         #region Public Camera Settings Methods
