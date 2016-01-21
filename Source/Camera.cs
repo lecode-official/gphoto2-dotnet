@@ -542,6 +542,27 @@ namespace System.Devices
             return supportedShutterSpeeds;
         }
         
+        /// <summary>
+        /// Retrieves the current aperture of the camera.
+        /// </summary>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
+        /// <returns>Returns the current aperture of the camera.</returns>
+        public async Task<double> GetApertureAsync()
+        {
+            // Gets the aperture camera setting and checks if it exists, if it does not exist, then an exception is thrown
+            CameraSetting apertureCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.Aperture);
+            if (apertureCameraSetting == null)
+                throw new CameraException("The camera setting for the aperture is not supported by this camera");
+            
+            // Retrieves the current aperture of the camera
+            string currentApertureTextualRepresentation = await apertureCameraSetting.GetValueAsync();
+            
+            // Parses the aperture and returns it
+            return double.Parse(currentApertureTextualRepresentation, CultureInfo.InvariantCulture);
+        }
+        
         #endregion
         
         #region Public Camera Settings Methods
