@@ -377,11 +377,11 @@ namespace System.Devices
             // Tries to set the new ISO speed, if an exception is thrown, then the ISO speed is not supported by the camera
             try
             {
-                await isoSpeedCameraSetting.SetValueAsync(isoSpeed == 0 ? "Auto" : isoSpeed.ToString());
+                await isoSpeedCameraSetting.SetValueAsync(isoSpeed == 0 ? "Auto" : isoSpeed.ToString(CultureInfo.InvariantCulture));
             }
             catch (CameraException exception)
             {
-                throw new CameraException(string.Format(CultureInfo.InvariantCulture, "The ISO speed of {0} is not supported by the camera.", isoSpeed == 0 ? "Auto" : isoSpeed.ToString()), exception);
+                throw new CameraException(string.Format(CultureInfo.InvariantCulture, "The ISO speed of {0} is not supported by the camera.", isoSpeed == 0 ? "Auto" : isoSpeed.ToString(CultureInfo.InvariantCulture)), exception);
             }
         }
         
@@ -561,6 +561,49 @@ namespace System.Devices
             
             // Parses the aperture and returns it
             return double.Parse(currentApertureTextualRepresentation, CultureInfo.InvariantCulture);
+        }
+        
+        /// <summary>
+        /// Sets the aperture of the camera.
+        /// </summary>
+        /// <param name="aperture">The aperture to which the camera is to be set.</param>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
+        public async Task SetApertureAsync(double aperture)
+        {
+            // Gets the aperture camera setting and checks if it exists, if it does not exist, then an exception is thrown
+            CameraSetting apertureCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.Aperture);
+            if (apertureCameraSetting == null)
+                throw new CameraException("The camera setting for the aperture is not supported by this camera");
+            
+            // Tries to set the new aperture, if an exception is thrown, then the aperture is not supported by the camera
+            try
+            {
+                await apertureCameraSetting.SetValueAsync(aperture.ToString(CultureInfo.InvariantCulture));
+            }
+            catch (CameraException exception)
+            {
+                throw new CameraException(string.Format(CultureInfo.InvariantCulture, "The aperture of {0} is not supported by the camera.", aperture), exception);
+            }
+        }
+        
+        /// <summary>
+        /// Gets all apertures, that are supported by the camera.
+        /// </summary>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
+        /// <returns>Returns a list of all the apertures that are supported by the camera.</returns>
+        public async Task<IEnumerable<double>> GetSupportedAperturesAsync()
+        {
+            // Gets the aperture camera setting and checks if it exists, if it does not exist, then an exception is thrown
+            CameraSetting apertureCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.Aperture);
+            if (apertureCameraSetting == null)
+                throw new CameraException("The camera setting for the aperture is not supported by this camera");
+            
+            // Gets all the choices, converts them to intergers and returns them
+            return (await apertureCameraSetting.GetChoicesAsync()).Select(choice => double.Parse(choice, CultureInfo.InvariantCulture));
         }
         
         #endregion
