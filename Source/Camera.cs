@@ -360,7 +360,10 @@ namespace System.Devices
         /// <summary>
         /// Sets the ISO speed of the camera.
         /// </summary>
-        /// <param name="isoSpeed">The ISO speed to which the camera is to be set. An ISO speed of 0 sets the camera to an Auto ISO speed,</param>
+        /// <param name="isoSpeed">
+        /// The ISO speed to which the camera is to be set. An ISO speed of 0 sets the camera to an Auto ISO speed, which means that the camera
+        /// determines the correct ISO speed for the current lighting conditions
+        /// </param>
         /// <exception cref="CameraSettingNotSupportedException">
         /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
         /// </exception>
@@ -446,6 +449,53 @@ namespace System.Devices
                     return TimeSpan.FromSeconds(double.Parse(currentShutterSpeedTextualRepresentation, CultureInfo.InvariantCulture));
                 }
             }
+        }
+        
+        /// <summary>
+        /// Sets the shutter speed of the camera.
+        /// </summary>
+        /// <param name="shutterSpeed">
+        /// The shutter speed to which the camera is to be set. A shutter speed of <c>TimeSpan.MaxValue</c> sets the camera to a Bulb shutter
+        /// speed, which means that the camera exposes the image for as long as the release is pressed.
+        /// </param>
+        /// <exception cref="CameraSettingNotSupportedException">
+        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// </exception>
+        public async Task SetShutterSpeedAsync(TimeSpan shutterSpeed)
+        {
+            // Gets the shutter speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
+            CameraSetting shutterSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.ShutterSpeed);
+            if (shutterSpeedCameraSetting == null)
+                throw new CameraException("The camera setting for the shutter speed is not supported by this camera");
+            
+            // Gets all the choices and converts them to TimeSpans, which is needed to determine the correct value for the shutter speed to set
+            Dictionary<TimeSpan, string> supportedShutterSpeeds = new Dictionary<TimeSpan, string>();
+            foreach (string choice in await shutterSpeedCameraSetting.GetChoicesAsync())
+            {
+                if (choice.ToUpperInvariant() == "BULB")
+                {
+                    supportedShutterSpeeds.Add(TimeSpan.MaxValue, choice);
+                }
+                else if (choice.Contains("/"))
+                {
+                    string[] fractionElements = choice.Split('/');
+                    if (fractionElements.Length < 2)
+                        throw new CameraException("The shutter speed could not be properly set for an unknown reason.");
+                    double numerator = double.Parse(fractionElements[0], CultureInfo.InvariantCulture);
+                    double denominator = double.Parse(fractionElements[1], CultureInfo.InvariantCulture);
+                    supportedShutterSpeeds.Add(TimeSpan.FromTicks(Convert.ToInt64(numerator / denominator * 1000000L)), choice);
+                }
+                else
+                {
+                    supportedShutterSpeeds.Add(TimeSpan.FromSeconds(double.Parse(choice, CultureInfo.InvariantCulture)), choice);
+                }
+            }
+            
+            // Chooses the correct shutter speed value from the available choices and sets it, if the shutter speed could not be detected,
+            // then an exception is thrown
+            if (!supportedShutterSpeeds.ContainsKey(shutterSpeed))
+                throw new CameraException(string.Format(CultureInfo.InvariantCulture, "The shutter speed {0} is not supported by the camera.", shutterSpeed));
+            await shutterSpeedCameraSetting.SetValueAsync(supportedShutterSpeeds[shutterSpeed]);
         }
         
         /// <summary>
