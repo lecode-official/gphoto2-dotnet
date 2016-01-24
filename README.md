@@ -87,7 +87,7 @@ Besides the gPhoto2.NET library, there are several test applications. Attach a c
 that everything is working properly, e.g. like this:
 
 ```bash
-mono Build/Release/ImageCapturingTest.exe
+mono Build/Release/SampleApplication.exe
 ```
 
 ## Using gPhoto2.NET

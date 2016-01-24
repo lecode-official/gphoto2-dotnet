@@ -9,28 +9,30 @@ using System.Threading.Tasks;
 
 #endregion
 
-namespace Application
+namespace SamplesApplication
 {
 	/// <summary>
-	/// Represents a test application, which gets the first camera attached to the system and prints out some information about the camera.
+	/// Represents a gPhoto2.NET sample, which gets the first camera attached to the system and prints out some information about the camera.
 	/// </summar>
-	public class CameraSettingsTest
+	public class CameraSettingsSample : ISample
 	{
-		#region Public Static Methods
-		
+		#region ISample Implementation
+        
+        /// <summary>
+        /// Gets the title of the sample.
+        /// </summary>
+        public string Title
+        {
+            get
+            {
+                return "Print out camera information";
+            }
+        }
+        
 		/// <summary>
-		/// The entrypoint for the camera settings test program.
-		/// </summar>
-		public static void Main()
-		{
-			// Calls the asynchronous version of the main method, so that asynchronous operations can be performed
-			CameraSettingsTest.MainAsync().Wait();
-		}
-
-		/// <summary>
-		/// The asynchronous entrypoint to the camera settings test program.
+		/// Executes the sample.
 		/// </summary>
-		public static async Task MainAsync()
+		public async Task ExecuteAsync()
 		{
 			// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the
             // gphoto2-dotnet should be wrapped in try-catch-clauses

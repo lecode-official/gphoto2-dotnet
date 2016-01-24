@@ -17,7 +17,7 @@
 			"request": "launch",
             
             // The test application is run
-			"program": "Build/Debug/CameraSettingsTest.exe",
+			"program": "Build/Debug/SampleApplication.exe",
 			
             // No arguments are passed to the application
             "args": [],
