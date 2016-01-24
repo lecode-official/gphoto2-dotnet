@@ -1,5 +1,7 @@
 # gPhoto2.NET
 
+![gPhoto2.NET Logo](https://github.com/lecode-official/gphoto2-dotnet/blob/master/Documentation/Images/Logo512x512.png "gPhoto2.NET Logo")
+
 ## Introduction
 gPhoto2.NET is an easy-to-use .NET wrapper for the popular gPhoto2. It can be used to easily interface with DSLRs or other types of cameras from a
 .NET application. gPhoto2.NET was developed using Mono on Linux and was specifically made for the use on Raspberry Pi.
