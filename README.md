@@ -15,7 +15,7 @@ The following example showcases how cameras that are attached to the system can 
 captured and stored on the camera.
 
 ```csharp
-// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the gphoto2-dotnet should be wrapped in try-catch-clauses
+// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the gPhoto2.NET should be wrapped in try-catch-clauses
 Camera camera = null;
 try
 {

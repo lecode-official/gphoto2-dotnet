@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace SamplesApplication
 {
 	/// <summary>
-	/// Represents a gPhoto2.NET sample, which gets the first camera attached to the system and prints out some information about the camera.
+	/// Represents a gPhoto2.NET sample, which gets the first camera attached to the system and prints out all available camera settings.
 	/// </summar>
 	public class CameraSettingsSample : ISample
 	{
@@ -25,7 +25,7 @@ namespace SamplesApplication
         {
             get
             {
-                return "Print out camera information";
+                return "Camera settings";
             }
         }
         
@@ -35,7 +35,7 @@ namespace SamplesApplication
 		public async Task ExecuteAsync()
 		{
 			// Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the
-            // gphoto2-dotnet should be wrapped in try-catch-clauses
+            // gPhoto2.NET should be wrapped in try-catch-clauses
 			Camera camera = null;
 			try
 			{
@@ -49,17 +49,9 @@ namespace SamplesApplication
 					return;
 				}
                 
-				// Gathers some information about the camera and prints it out
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Manufacturer: {0}", await camera.GetManufacturerAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Camera model: {0}", await camera.GetCameraModelAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Lens name: {0}", await camera.GetLensNameAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Battery level: {0}", await camera.GetBatteryLevelAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Owner name: {0}", await camera.GetOwnerNameAsync()));
-                
-                // Gets some information about the capture settings of the camera and prints it out
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "ISO speed: {0}", await camera.GetIsoSpeedAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Shutter speed: {0}", await camera.GetShutterSpeedAsync()));
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Aperture: {0}", await camera.GetApertureAsync()));
+                // Gets all camera settings and prints them out
+                foreach (CameraSetting cameraSetting in camera.Settings)
+                    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}", await cameraSetting.GetLabelAsync(), await cameraSetting.GetValueAsync()));
             }
 			catch (CameraException exception)
 			{

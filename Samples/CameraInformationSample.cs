@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 namespace SamplesApplication
 {
 	/// <summary>
-	/// Represents a gPhoto2.NET sample, which gets the first camera attached to the system and captures an image.
+	/// Represents a gPhoto2.NET sample, which gets the first camera attached to the system and prints out some information about the camera.
 	/// </summar>
-	public class CameraSettingsTest : ISample
+	public class CameraInformationSample : ISample
 	{
 		#region ISample Implementation
         
@@ -25,7 +25,7 @@ namespace SamplesApplication
         {
             get
             {
-                return "Capture images";
+                return "Camera information";
             }
         }
         
@@ -48,11 +48,19 @@ namespace SamplesApplication
 					Console.WriteLine("No camera detected!");
 					return;
 				}
-
-				// Captures an image and stores it on the camera
-                string fileName = await camera.CaptureImageAsync();
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Image captured and stored on the camera: {0}", fileName));
-			}
+                
+				// Gathers some information about the camera and prints it out
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Manufacturer: {0}", await camera.GetManufacturerAsync()));
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Camera model: {0}", await camera.GetCameraModelAsync()));
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Lens name: {0}", await camera.GetLensNameAsync()));
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Battery level: {0}", await camera.GetBatteryLevelAsync()));
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Owner name: {0}", await camera.GetOwnerNameAsync()));
+                
+                // Gets some information about the capture settings of the camera and prints it out
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "ISO speed: {0}", await camera.GetIsoSpeedAsync()));
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Shutter speed: {0}", await camera.GetShutterSpeedAsync()));
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Aperture: {0}", await camera.GetApertureAsync()));
+            }
 			catch (CameraException exception)
 			{
 				// If an exception was caught, e.g. because the camera was unplugged, an error message is printed out
