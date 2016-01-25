@@ -19,38 +19,38 @@ namespace System.Devices
     {
         #region Constructors
         
-		/// <summary>
-		/// Intializes a new <see cref="CameraConfiguration" /> instance. The constructor is made internal, so that the factory pattern,
+        /// <summary>
+        /// Intializes a new <see cref="CameraConfiguration" /> instance. The constructor is made internal, so that the factory pattern,
         /// which is used to instantiate new instances of <see cref="CameraConfiguration" />, can be enforced.
-		/// </summary>
-		/// <param name="configurationName">The name of the configuration.</param>
-		/// <param name="gPhoto2IpcWrapper">
-		/// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the configuration
+        /// </summary>
+        /// <param name="configurationName">The name of the configuration.</param>
+        /// <param name="gPhoto2IpcWrapper">
+        /// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the configuration
         /// should use the exact same IPC wrapper used by the camera (the IPC wrapper ensures that only one operation at a time is executed,
         /// which is important when interfacing with the camera). If two operations, e.g. setting a value and capturing an image, would
         /// be performed at the same time, the program would crash, because gPhoto2 can only do one thing at a time).
-		/// </param>
-		internal CameraConfiguration(string configurationName, GPhoto2IpcWrapper gPhoto2IpcWrapper)
-		{
+        /// </param>
+        internal CameraConfiguration(string configurationName, GPhoto2IpcWrapper gPhoto2IpcWrapper)
+        {
             // Stores the all information about the configuration for later use
             this.Name = configurationName;
-		    this.gPhoto2IpcWrapper = gPhoto2IpcWrapper;
-		}
+            this.gPhoto2IpcWrapper = gPhoto2IpcWrapper;
+        }
 
         #endregion
         
         #region Private Fields
         
-		/// <summary>
-		/// Contains the IPC wrapper, which is used to interface with gPhoto2.
-		/// </summary>
-		private GPhoto2IpcWrapper gPhoto2IpcWrapper;
-		
-		/// <summary>
-		/// Contains a value that determines whether the configuration has already been initialized.
-		/// </summary>
-		private bool isInitialized;
-		
+        /// <summary>
+        /// Contains the IPC wrapper, which is used to interface with gPhoto2.
+        /// </summary>
+        private GPhoto2IpcWrapper gPhoto2IpcWrapper;
+        
+        /// <summary>
+        /// Contains a value that determines whether the configuration has already been initialized.
+        /// </summary>
+        private bool isInitialized;
+        
         /// <summary>
         /// Contains the type of the configuration, e.g. text or option.
         /// </summary>
@@ -84,9 +84,9 @@ namespace System.Devices
         
         #region Private Methods
         
-		/// <summary>
-		/// Initializes a new configuration (the intialization must be performed before getting or configuration the value).
-		/// </summary>
+        /// <summary>
+        /// Initializes a new configuration (the intialization must be performed before getting or configuration the value).
+        /// </summary>
         /// <exception cref="CameraConfiguration">
         /// If anything goes wrong during the initialization of the camera configuration, then a <see cref="CameraConfiguration" /> exception is
         /// thrown.
@@ -97,62 +97,62 @@ namespace System.Devices
             await this.gPhoto2IpcWrapper.ExecuteInteractiveAsync(string.Format(CultureInfo.InvariantCulture, "get-config {0}", this.Name), output =>
                 {   
                     // Creates a string reader, so that the output of gPhoto2 can be read line by line
-				    using (StringReader stringReader = new StringReader(output))
-				    {
-				        // Reads the first line, which contains the label, a human-readable name, of the configuration
-				        string line = stringReader.ReadLine();
-				        string[] splittedLine = string.IsNullOrWhiteSpace(line) ? null : line.Split(':');
-				        this.label = splittedLine.Length != 2 ? string.Empty : splittedLine[1].Trim();
-				        
-				        // Reads the second line, which contains the type of the configuration
-				        line = stringReader.ReadLine();
-				        splittedLine = string.IsNullOrWhiteSpace(line) ? null : line.Split(':');
-				        string typeName = splittedLine.Length != 2 ? string.Empty : splittedLine[1].Trim().ToUpperInvariant();
-				        if (typeName == "TEXT")
-				            this.configurationType = CameraConfigurationType.Text;
-			            else if (typeName == "RADIO" || typeName == "MENU")
-				            this.configurationType = CameraConfigurationType.Option;
-			            else if (typeName == "DATE")
-				            this.configurationType = CameraConfigurationType.DateTime;
-			            else if (typeName == "TOGGLE")
-				            this.configurationType = CameraConfigurationType.Text;
-			            else
-				            this.configurationType = CameraConfigurationType.Unknown;
-				        
-				        // Reads the third line, which contains the current value, parses it and stores the current value of the configuration
+                    using (StringReader stringReader = new StringReader(output))
+                    {
+                        // Reads the first line, which contains the label, a human-readable name, of the configuration
+                        string line = stringReader.ReadLine();
+                        string[] splittedLine = string.IsNullOrWhiteSpace(line) ? null : line.Split(':');
+                        this.label = splittedLine.Length != 2 ? string.Empty : splittedLine[1].Trim();
+                        
+                        // Reads the second line, which contains the type of the configuration
+                        line = stringReader.ReadLine();
+                        splittedLine = string.IsNullOrWhiteSpace(line) ? null : line.Split(':');
+                        string typeName = splittedLine.Length != 2 ? string.Empty : splittedLine[1].Trim().ToUpperInvariant();
+                        if (typeName == "TEXT")
+                            this.configurationType = CameraConfigurationType.Text;
+                        else if (typeName == "RADIO" || typeName == "MENU")
+                            this.configurationType = CameraConfigurationType.Option;
+                        else if (typeName == "DATE")
+                            this.configurationType = CameraConfigurationType.DateTime;
+                        else if (typeName == "TOGGLE")
+                            this.configurationType = CameraConfigurationType.Text;
+                        else
+                            this.configurationType = CameraConfigurationType.Unknown;
+                        
+                        // Reads the third line, which contains the current value, parses it and stores the current value of the configuration
                         Regex currentValueRegex = new Regex("^Current: (?<Value>(.*))$");
-				        line = stringReader.ReadLine().Trim();
+                        line = stringReader.ReadLine().Trim();
                         Match match = currentValueRegex.Match(line);
                         this.currentValue = match.Groups["Value"].Value;
-				        
-				        // Reads all following lines, which each contain a value choice, which is useful, when the configuration is of type
+                        
+                        // Reads all following lines, which each contain a value choice, which is useful, when the configuration is of type
                         // Option
-				        List<string> choices = new List<string>();
-				        if (this.configurationType == CameraConfigurationType.Option)
-				        {
-					        // The line contains the number of the choice and the value as a string
-					        Regex choiceRegex = new Regex("^Choice: [0-9]+ (?<Choice>(.+))$");
-					        
-			                // Cycles over each line to extract the choices
-					        while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
-					        {
-						        // Trims the line, because it might have leading or trailing whitespaces (the regular expression would
+                        List<string> choices = new List<string>();
+                        if (this.configurationType == CameraConfigurationType.Option)
+                        {
+                            // The line contains the number of the choice and the value as a string
+                            Regex choiceRegex = new Regex("^Choice: [0-9]+ (?<Choice>(.+))$");
+                            
+                            // Cycles over each line to extract the choices
+                            while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
+                            {
+                                // Trims the line, because it might have leading or trailing whitespaces (the regular expression would
                                 // be more complex with them)
-						        line = line.Trim();
+                                line = line.Trim();
 
-						        // Reads the choice from the match and adds it to the list of choices
-						        match = choiceRegex.Match(line);
-						        string choice = match.Groups["Choice"].Value;
-						        if (string.IsNullOrWhiteSpace(choice))
-							        continue;
-						        choices.Add(choice);
-					        }
-					    }
-					    this.choices = choices;
-				    }
+                                // Reads the choice from the match and adds it to the list of choices
+                                match = choiceRegex.Match(line);
+                                string choice = match.Groups["Choice"].Value;
+                                if (string.IsNullOrWhiteSpace(choice))
+                                    continue;
+                                choices.Add(choice);
+                            }
+                        }
+                        this.choices = choices;
+                    }
                     
-    				// Since no asynchronous operation was performed, an already resolved task is returned
-    				return Task.FromResult(0);
+                    // Since no asynchronous operation was performed, an already resolved task is returned
+                    return Task.FromResult(0);
                 });
                 
             // In order to make sure, that the initialize method is only called once, we store a value that states that the configuration is
@@ -277,41 +277,41 @@ namespace System.Devices
         
         #region Internal Static Methods
         
-		/// <summary>
-		/// Iterates all configurations of the specified camera and initializes them.
-		/// </summary>
-		/// <param name="gPhoto2IpcWrapper">
-		/// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the configurations should
+        /// <summary>
+        /// Iterates all configurations of the specified camera and initializes them.
+        /// </summary>
+        /// <param name="gPhoto2IpcWrapper">
+        /// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the configurations should
         /// use the exact same IPC wrapper used by the camera (the IPC wrapper ensures that only one operation at a time is executed,
         /// which is important when interfacing with the camera). If two operations, e.g. configuration a value and capturing an image, would
         /// be performed at the same time, the program would crash, because gPhoto2 can only do one thing at a time).
-		/// </param>
+        /// </param>
         /// <exception cref="CameraConfiguration">
         /// If anything goes wrong during the retrieval of the camera configurations, then a <see cref="CameraConfiguration" /> exception is thrown.
         /// </exception>
-		/// <returns>Returns a read-only list containing all configurations of the specified camera.</returns>
-		internal static async Task<IEnumerable<CameraConfiguration>> GetCameraConfigurationsAsync(GPhoto2IpcWrapper gPhoto2IpcWrapper)
-		{
-		    // Gets all the configurations of the specified camera and returns them
-			return await gPhoto2IpcWrapper.ExecuteInteractiveAsync("list-config", output =>
-				{
-					// Creates a new result list for the camera configurations
-					List<CameraConfiguration> CameraConfigurations = new List<CameraConfiguration>();
+        /// <returns>Returns a read-only list containing all configurations of the specified camera.</returns>
+        internal static async Task<IEnumerable<CameraConfiguration>> GetCameraConfigurationsAsync(GPhoto2IpcWrapper gPhoto2IpcWrapper)
+        {
+            // Gets all the configurations of the specified camera and returns them
+            return await gPhoto2IpcWrapper.ExecuteInteractiveAsync("list-config", output =>
+                {
+                    // Creates a new result list for the camera configurations
+                    List<CameraConfiguration> CameraConfigurations = new List<CameraConfiguration>();
 
-					// Creates a string reader, so that the output of gPhoto2 can be read line by line
-					using (StringReader stringReader = new StringReader(output))
-					{
-					    // Cycles over the each line of the output and creates a new configuration (each line contains the name of the configuration)
-						string line;
-						while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
-						    CameraConfigurations.Add(new CameraConfiguration(line.Trim(), gPhoto2IpcWrapper));
-					}
+                    // Creates a string reader, so that the output of gPhoto2 can be read line by line
+                    using (StringReader stringReader = new StringReader(output))
+                    {
+                        // Cycles over the each line of the output and creates a new configuration (each line contains the name of the configuration)
+                        string line;
+                        while (!string.IsNullOrWhiteSpace(line = stringReader.ReadLine()))
+                            CameraConfigurations.Add(new CameraConfiguration(line.Trim(), gPhoto2IpcWrapper));
+                    }
 
-					// Returns all configurations that have been found by gPhoto2 for the specified camera
-					return Task.FromResult(CameraConfigurations);
-				});
-		}
-		
+                    // Returns all configurations that have been found by gPhoto2 for the specified camera
+                    return Task.FromResult(CameraConfigurations);
+                });
+        }
+        
         #endregion
     }
 }

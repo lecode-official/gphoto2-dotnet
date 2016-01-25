@@ -13,27 +13,27 @@ using System.Threading.Tasks;
 
 namespace SamplesApplication
 {
-	/// <summary>
-	/// Represents an application, which makes it possible for users to execute some gPhoto2.NET samples.
-	/// </summar>
-	public class SampleApplication
-	{
-		#region Public Static Methods
-		
-		/// <summary>
-		/// The entrypoint for the gPhoto2.NET samples application.
-		/// </summar>
-		public static void Main()
-		{
-			// Calls the asynchronous version of the main method, so that asynchronous operations can be performed
-			SampleApplication.MainAsync().Wait();
-		}
+    /// <summary>
+    /// Represents an application, which makes it possible for users to execute some gPhoto2.NET samples.
+    /// </summar>
+    public class SampleApplication
+    {
+        #region Public Static Methods
+        
+        /// <summary>
+        /// The entrypoint for the gPhoto2.NET samples application.
+        /// </summar>
+        public static void Main()
+        {
+            // Calls the asynchronous version of the main method, so that asynchronous operations can be performed
+            SampleApplication.MainAsync().Wait();
+        }
 
-		/// <summary>
-		/// The asynchronous entrypoint to the gPhoto2.NET samples application.
-		/// </summary>
-		public static async Task MainAsync()
-		{
+        /// <summary>
+        /// The asynchronous entrypoint to the gPhoto2.NET samples application.
+        /// </summary>
+        public static async Task MainAsync()
+        {
             // Gets all classes within the application, that implement the ISample interface, and instantiates instances of them
             Type sampleInterfaceType = typeof(ISample);
             IEnumerable<ISample> samples = Assembly.GetExecutingAssembly().GetTypes()
