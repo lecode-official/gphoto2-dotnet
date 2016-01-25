@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 namespace SamplesApplication
 {
 	/// <summary>
-	/// Represents a gPhoto2.NET sample, which gets the first camera attached to the system and prints out all available camera settings.
+	/// Represents a gPhoto2.NET sample, which gets the first camera attached to the system and prints out all available camera configurations.
 	/// </summar>
-	public class CameraSettingsSample : ISample
+	public class CameraConfigurationSample : ISample
 	{
 		#region ISample Implementation
         
@@ -25,7 +25,7 @@ namespace SamplesApplication
         {
             get
             {
-                return "Camera settings";
+                return "Camera configuration";
             }
         }
         
@@ -49,9 +49,9 @@ namespace SamplesApplication
 					return;
 				}
                 
-                // Gets all camera settings and prints them out
-                foreach (CameraSetting cameraSetting in camera.Settings)
-                    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}", await cameraSetting.GetLabelAsync(), await cameraSetting.GetValueAsync()));
+                // Gets all camera configuration and prints them out
+                foreach (CameraConfiguration cameraConfiguration in camera.Configurations)
+                    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}", await cameraConfiguration.GetLabelAsync(), await cameraConfiguration.GetValueAsync()));
             }
 			catch (CameraException exception)
 			{

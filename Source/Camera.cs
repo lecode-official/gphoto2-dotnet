@@ -59,7 +59,7 @@ namespace System.Devices
 		public string Port { get; private set; }
 
 		/// <summary>
-		/// Gets a value that determines whether the camera has the ability to be configured, i.e. the values of settings can be read
+		/// Gets a value that determines whether the camera has the ability to be configured, i.e. the values of configurations can be read
 		/// and set.
 		/// </summary>
 		public bool CanBeConfigured { get; private set; }
@@ -95,9 +95,9 @@ namespace System.Devices
 		public bool CanUploadFiles { get; private set; }
 		
 		/// <summary>
-		/// Gets a list of all the settings of the camera.
+		/// Gets a list of all the configuration of the camera.
 		/// </summary>
-		public IEnumerable<CameraSetting> Settings { get; private set; }
+		public IEnumerable<CameraConfiguration> Configurations { get; private set; }
 		
 		#endregion
 		
@@ -257,8 +257,8 @@ namespace System.Devices
 					}
 			    });
 
-			// Gets all of the settings of the camera
-			this.Settings = await CameraSetting.GetCameraSettingsAsync(this.gPhoto2IpcWrapper);
+			// Gets all of the configurations of the camera
+			this.Configurations = await CameraConfiguration.GetCameraConfigurationsAsync(this.gPhoto2IpcWrapper);
 		}
 
 		#endregion
@@ -336,19 +336,19 @@ namespace System.Devices
         /// <summary>
         /// Retrieves the current ISO speed of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>Returns the current ISO speed of the camera. If the ISO speed is set to Auto, then 0 is returned.</returns>
         public async Task<int> GetIsoSpeedAsync()
         {
-            // Gets the ISO speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting isoSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.IsoSpeed);
-            if (isoSpeedCameraSetting == null)
-                throw new CameraException("The camera setting for the ISO speed is not supported by this camera");
+            // Gets the ISO speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration isoSpeedCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.IsoSpeed);
+            if (isoSpeedCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the ISO speed is not supported by this camera");
             
             // Retrieves the current ISO speed of the camera
-            string currentIsoSpeedTextualRepresentation = await isoSpeedCameraSetting.GetValueAsync();
+            string currentIsoSpeedTextualRepresentation = await isoSpeedCameraConfiguration.GetValueAsync();
             
             // Checks if the ISO speed is set to Auto, if so then 0 is returned, otherwise the ISO speed is converted to an integer and returned
             if (currentIsoSpeedTextualRepresentation.ToUpperInvariant() == "AUTO")
@@ -364,20 +364,20 @@ namespace System.Devices
         /// The ISO speed to which the camera is to be set. An ISO speed of 0 sets the camera to an Auto ISO speed, which means that the camera
         /// determines the correct ISO speed for the current lighting conditions
         /// </param>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         public async Task SetIsoSpeedAsync(int isoSpeed)
         {
-            // Gets the ISO speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting isoSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.IsoSpeed);
-            if (isoSpeedCameraSetting == null)
-                throw new CameraException("The camera setting for the ISO speed is not supported by this camera");
+            // Gets the ISO speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration isoSpeedCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.IsoSpeed);
+            if (isoSpeedCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the ISO speed is not supported by this camera");
             
             // Tries to set the new ISO speed, if an exception is thrown, then the ISO speed is not supported by the camera
             try
             {
-                await isoSpeedCameraSetting.SetValueAsync(isoSpeed == 0 ? "Auto" : isoSpeed.ToString(CultureInfo.InvariantCulture));
+                await isoSpeedCameraConfiguration.SetValueAsync(isoSpeed == 0 ? "Auto" : isoSpeed.ToString(CultureInfo.InvariantCulture));
             }
             catch (CameraException exception)
             {
@@ -388,8 +388,8 @@ namespace System.Devices
         /// <summary>
         /// Gets all ISO speeds, that are supported by the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>
         /// Returns a list of all the ISO speeds that are supported by the camera. The ISO speed 0 means that the camera automatically detects the
@@ -397,21 +397,21 @@ namespace System.Devices
         /// </returns>
         public async Task<IEnumerable<int>> GetSupportedIsoSpeedsAsync()
         {
-            // Gets the ISO speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting isoSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.IsoSpeed);
-            if (isoSpeedCameraSetting == null)
-                throw new CameraException("The camera setting for the ISO speed is not supported by this camera");
+            // Gets the ISO speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration isoSpeedCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.IsoSpeed);
+            if (isoSpeedCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the ISO speed is not supported by this camera");
             
             // Gets all the choices, converts them to intergers and returns them
-            return (await isoSpeedCameraSetting.GetChoicesAsync()).Select(choice => choice.ToUpperInvariant() == "AUTO" ? 0 : int.Parse(choice, CultureInfo.InvariantCulture));
+            return (await isoSpeedCameraConfiguration.GetChoicesAsync()).Select(choice => choice.ToUpperInvariant() == "AUTO" ? 0 : int.Parse(choice, CultureInfo.InvariantCulture));
         }
         
         /// <summary>
         /// Gets the current shutter speed of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera or the shutter speed could not be retrieved properly, then a
-        /// <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera or the shutter speed could not be retrieved properly, then a
+        /// <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>
         /// Returns the current shutter speed of the camera. A shutter speed of <c>TimeSpan.MaxValue</c> means Bulb mode, where the camera exposes
@@ -419,13 +419,13 @@ namespace System.Devices
         /// </returns>
         public async Task<TimeSpan> GetShutterSpeedAsync()
         {
-            // Gets the shutter speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting shutterSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.ShutterSpeed);
-            if (shutterSpeedCameraSetting == null)
-                throw new CameraException("The camera setting for the shutter speed is not supported by this camera");
+            // Gets the shutter speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration shutterSpeedCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.ShutterSpeed);
+            if (shutterSpeedCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the shutter speed is not supported by this camera");
             
             // Retrieves the current shutter speed of the camera
-            string currentShutterSpeedTextualRepresentation = await shutterSpeedCameraSetting.GetValueAsync();
+            string currentShutterSpeedTextualRepresentation = await shutterSpeedCameraConfiguration.GetValueAsync();
             
             // Checks if the ISO speed is set to Bulb, if so then TimeSpan.MaxValue is returned, otherwise the shutter speed is converted to a TimeSpan and returned
             if (currentShutterSpeedTextualRepresentation.ToUpperInvariant() == "BULB")
@@ -458,19 +458,19 @@ namespace System.Devices
         /// The shutter speed to which the camera is to be set. A shutter speed of <c>TimeSpan.MaxValue</c> sets the camera to a Bulb shutter
         /// speed, which means that the camera exposes the image for as long as the release is pressed.
         /// </param>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         public async Task SetShutterSpeedAsync(TimeSpan shutterSpeed)
         {
-            // Gets the shutter speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting shutterSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.ShutterSpeed);
-            if (shutterSpeedCameraSetting == null)
-                throw new CameraException("The camera setting for the shutter speed is not supported by this camera");
+            // Gets the shutter speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration shutterSpeedCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.ShutterSpeed);
+            if (shutterSpeedCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the shutter speed is not supported by this camera");
             
             // Gets all the choices and converts them to TimeSpans, which is needed to determine the correct value for the shutter speed to set
             Dictionary<TimeSpan, string> supportedShutterSpeeds = new Dictionary<TimeSpan, string>();
-            foreach (string choice in await shutterSpeedCameraSetting.GetChoicesAsync())
+            foreach (string choice in await shutterSpeedCameraConfiguration.GetChoicesAsync())
             {
                 if (choice.ToUpperInvariant() == "BULB")
                 {
@@ -495,14 +495,14 @@ namespace System.Devices
             // then an exception is thrown
             if (!supportedShutterSpeeds.ContainsKey(shutterSpeed))
                 throw new CameraException(string.Format(CultureInfo.InvariantCulture, "The shutter speed {0} is not supported by the camera.", shutterSpeed));
-            await shutterSpeedCameraSetting.SetValueAsync(supportedShutterSpeeds[shutterSpeed]);
+            await shutterSpeedCameraConfiguration.SetValueAsync(supportedShutterSpeeds[shutterSpeed]);
         }
         
         /// <summary>
         /// Gets all shutter speeds, that are supported by the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>
         /// Returns a list of all the shutter speeds that are supported by the camera. A shutter speed of <c>TimeSpan.MaxValue</c> means that the
@@ -510,14 +510,14 @@ namespace System.Devices
         /// </returns>
         public async Task<IEnumerable<TimeSpan>> GetSupportedShutterSpeedsAsync()
         {
-            // Gets the shutter speed camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting shutterSpeedCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.ShutterSpeed);
-            if (shutterSpeedCameraSetting == null)
-                throw new CameraException("The camera setting for the shutter speed is not supported by this camera");
+            // Gets the shutter speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration shutterSpeedCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.ShutterSpeed);
+            if (shutterSpeedCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the shutter speed is not supported by this camera");
             
             // Gets all the choices, converts them to TimeSpans and returns them
             List<TimeSpan> supportedShutterSpeeds = new List<TimeSpan>();
-            foreach (string choice in await shutterSpeedCameraSetting.GetChoicesAsync())
+            foreach (string choice in await shutterSpeedCameraConfiguration.GetChoicesAsync())
             {
                 if (choice.ToUpperInvariant() == "BULB")
                 {
@@ -545,19 +545,19 @@ namespace System.Devices
         /// <summary>
         /// Retrieves the current aperture of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>Returns the current aperture of the camera.</returns>
         public async Task<double> GetApertureAsync()
         {
-            // Gets the aperture camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting apertureCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.Aperture);
-            if (apertureCameraSetting == null)
-                throw new CameraException("The camera setting for the aperture is not supported by this camera");
+            // Gets the aperture camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration apertureCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.Aperture);
+            if (apertureCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the aperture is not supported by this camera");
             
             // Retrieves the current aperture of the camera
-            string currentApertureTextualRepresentation = await apertureCameraSetting.GetValueAsync();
+            string currentApertureTextualRepresentation = await apertureCameraConfiguration.GetValueAsync();
             
             // Parses the aperture and returns it
             return double.Parse(currentApertureTextualRepresentation, CultureInfo.InvariantCulture);
@@ -567,20 +567,20 @@ namespace System.Devices
         /// Sets the aperture of the camera.
         /// </summary>
         /// <param name="aperture">The aperture to which the camera is to be set.</param>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         public async Task SetApertureAsync(double aperture)
         {
-            // Gets the aperture camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting apertureCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.Aperture);
-            if (apertureCameraSetting == null)
-                throw new CameraException("The camera setting for the aperture is not supported by this camera");
+            // Gets the aperture camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration apertureCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.Aperture);
+            if (apertureCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the aperture is not supported by this camera");
             
             // Tries to set the new aperture, if an exception is thrown, then the aperture is not supported by the camera
             try
             {
-                await apertureCameraSetting.SetValueAsync(aperture.ToString(CultureInfo.InvariantCulture));
+                await apertureCameraConfiguration.SetValueAsync(aperture.ToString(CultureInfo.InvariantCulture));
             }
             catch (CameraException exception)
             {
@@ -591,77 +591,77 @@ namespace System.Devices
         /// <summary>
         /// Gets all apertures, that are supported by the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>Returns a list of all the apertures that are supported by the camera.</returns>
         public async Task<IEnumerable<double>> GetSupportedAperturesAsync()
         {
-            // Gets the aperture camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting apertureCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.Aperture);
-            if (apertureCameraSetting == null)
-                throw new CameraException("The camera setting for the aperture is not supported by this camera");
+            // Gets the aperture camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration apertureCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.Aperture);
+            if (apertureCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the aperture is not supported by this camera");
             
             // Gets all the choices, converts them to intergers and returns them
-            return (await apertureCameraSetting.GetChoicesAsync()).Select(choice => double.Parse(choice, CultureInfo.InvariantCulture));
+            return (await apertureCameraConfiguration.GetChoicesAsync()).Select(choice => double.Parse(choice, CultureInfo.InvariantCulture));
         }
         
         #endregion
         
-        #region Public Camera Settings Methods
+        #region Public camera configurations Methods
         
         /// <summary>
         /// Retrieves the name of the owner of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>Returns the name of the owner of the camera.</returns>
         public async Task<string> GetOwnerNameAsync()
         {
-            // Gets the owner name camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting ownerNameCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.OwnerName);
-            if (ownerNameCameraSetting == null)
-                throw new CameraException("The camera setting for the owner name is not supported by this camera");
+            // Gets the owner name camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration ownerNameCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.OwnerName);
+            if (ownerNameCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the owner name is not supported by this camera");
             
             // Retrieves the owner name and returns it
-            return await ownerNameCameraSetting.GetValueAsync();
+            return await ownerNameCameraConfiguration.GetValueAsync();
         }
         
         /// <summary>
         /// Sets the name of the owner of the camera.
         /// </summary>
         /// <param name="name">The new name of the owner of the camera, that is to be set.</param>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         public async Task SetOwnerNameAsync(string name)
         {
-            // Gets the owner name camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting ownerNameCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.OwnerName);
-            if (ownerNameCameraSetting == null)
-                throw new CameraException("The camera setting for the owner name is not supported by this camera");
+            // Gets the owner name camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration ownerNameCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.OwnerName);
+            if (ownerNameCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the owner name is not supported by this camera");
 
             // Sets the new name of the owner of the camera
-            await ownerNameCameraSetting.SetValueAsync(name);
+            await ownerNameCameraConfiguration.SetValueAsync(name);
         }
         
         /// <summary>
         /// Retrieves the name of the manufacturer of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>Returns the name of the manufacturer of the camera.</returns>
         public async Task<string> GetManufacturerAsync()
         {
-            // Gets the manufacturer camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting manufacturerCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.Manufacturer);
-            if (manufacturerCameraSetting == null)
-                throw new CameraException("The camera setting for the camera manufacturer is not supported by this camera");
+            // Gets the manufacturer camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration manufacturerCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.Manufacturer);
+            if (manufacturerCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the camera manufacturer is not supported by this camera");
             
             // Retrieves the manufacturer and returns it
-            return await manufacturerCameraSetting.GetValueAsync();
+            return await manufacturerCameraConfiguration.GetValueAsync();
         }
         
         #endregion
@@ -671,55 +671,55 @@ namespace System.Devices
         /// <summary>
         /// Retrieves the name of the camera model.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>Returns the name of the camera model.</returns>
         public async Task<string> GetCameraModelAsync()
         {
-            // Gets the camera model setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting cameraModelCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.CameraModel);
-            if (cameraModelCameraSetting == null)
-                throw new CameraException("The camera setting for the camera model is not supported by this camera");
+            // Gets the camera model configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration cameraModelCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.CameraModel);
+            if (cameraModelCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the camera model is not supported by this camera");
             
             // Retrieves the camera model and returns it
-            return await cameraModelCameraSetting.GetValueAsync();
+            return await cameraModelCameraConfiguration.GetValueAsync();
         }
         
         /// <summary>
         /// Retrieves the name of the lens of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>Returns the name of the lens of the camera.</returns>
         public async Task<string> GetLensNameAsync()
         {
-            // Gets the lens name camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting lensNameCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.LensName);
-            if (lensNameCameraSetting == null)
-                throw new CameraException("The camera setting for the lens name is not supported by this camera");
+            // Gets the lens name camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration lensNameCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.LensName);
+            if (lensNameCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the lens name is not supported by this camera");
             
             // Retrieves the name of the lens of the camera and returns it
-            return await lensNameCameraSetting.GetValueAsync();
+            return await lensNameCameraConfiguration.GetValueAsync();
         }
         
         /// <summary>
         /// Retrieves the battery level of the camera.
         /// </summary>
-        /// <exception cref="CameraSettingNotSupportedException">
-        /// If the camera setting is not supported by the camera, then a <see cref="CameraSettingNotSupportedException"/> exception is thrown.
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
         /// <returns>Returns the battery level of the camera.</returns>
         public async Task<string> GetBatteryLevelAsync()
         {
-            // Gets the battery level camera setting and checks if it exists, if it does not exist, then an exception is thrown
-            CameraSetting batteryLevelCameraSetting = this.Settings.FirstOrDefault(setting => setting.Name == CameraSettings.BatteryLevel);
-            if (batteryLevelCameraSetting == null)
-                throw new CameraException("The camera setting for the battery level is not supported by this camera");
+            // Gets the battery level camera configuration and checks if it exists, if it does not exist, then an exception is thrown
+            CameraConfiguration batteryLevelCameraConfiguration = this.Configurations.FirstOrDefault(configuration => configuration.Name == CameraConfigurations.BatteryLevel);
+            if (batteryLevelCameraConfiguration == null)
+                throw new CameraException("The camera configuration for the battery level is not supported by this camera");
             
             // Retrieves the battery level of the camera and returns it
-            return await batteryLevelCameraSetting.GetValueAsync();
+            return await batteryLevelCameraConfiguration.GetValueAsync();
         }
         
         #endregion

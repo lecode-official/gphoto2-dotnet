@@ -14,7 +14,7 @@ namespace SamplesApplication
 	/// <summary>
 	/// Represents a gPhoto2.NET sample, which gets the first camera attached to the system and captures an image.
 	/// </summar>
-	public class CameraSettingsTest : ISample
+	public class ImageCapturingSample : ISample
 	{
 		#region ISample Implementation
         

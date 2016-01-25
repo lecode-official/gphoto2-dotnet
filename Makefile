@@ -5,10 +5,10 @@ RELEASE                      = Release
 DEBUG                        = Debug
 
 # Contains the input files for the gPhoto2.NET library
-GPHOTODOTNETINPUTFILES       = Source/AssemblyInfo.cs Source/Camera.cs Source/CameraException.cs Source/CameraSetting.cs Source/CameraSettings.cs Source/CameraSettingType.cs Source/GPhoto2IpcWrapper.cs Source/IsoSpeeds.cs
+GPHOTODOTNETINPUTFILES       = Source/AssemblyInfo.cs Source/Camera.cs Source/CameraException.cs Source/CameraConfiguration.cs Source/CameraConfigurations.cs Source/CameraConfigurationType.cs Source/GPhoto2IpcWrapper.cs Source/IsoSpeeds.cs
 
 # Contains the input files for the gPhoto2.NET samples application
-SAMPLESAPPLICATIONINPUTFILES = Samples/AssemblyInfo.cs Samples/CameraInformationSample.cs Samples/CameraSettingsSample.cs Samples/CaptureSettingsSample.cs Samples/ImageCapturingSample.cs Samples/ISample.cs Samples/SampleApplication.cs
+SAMPLESAPPLICATIONINPUTFILES = Samples/AssemblyInfo.cs Samples/CameraInformationSample.cs Samples/CameraConfigurationSample.cs Samples/CaptureSettingsSample.cs Samples/ImageCapturingSample.cs Samples/ISample.cs Samples/SampleApplication.cs
 
 # The targets, that create the gPhoto2.NET library and the samples application in both debug and release configuration
 All: AllRelease AllDebug
