@@ -20,17 +20,17 @@ namespace System.Devices
         #region Constructors
         
 		/// <summary>
-		/// Intializes a new <see cref="CameraConfiguration" /> instance. The constructor is made private, so that the factory pattern, which
-        /// is used to instantiate new instances of <see cref="CameraConfiguration" />, can be enforced.
+		/// Intializes a new <see cref="CameraConfiguration" /> instance. The constructor is made internal, so that the factory pattern,
+        /// which is used to instantiate new instances of <see cref="CameraConfiguration" />, can be enforced.
 		/// </summary>
 		/// <param name="configurationName">The name of the configuration.</param>
 		/// <param name="gPhoto2IpcWrapper">
-		/// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the configuration should
-        /// use the exact same IPC wrapper used by the camera (the IPC wrapper ensures that only one operation at a time is executed,
+		/// The IPC wrapper, which is to be used to interface with gPhoto2. The IPC wrapper must be injected, because the configuration
+        /// should use the exact same IPC wrapper used by the camera (the IPC wrapper ensures that only one operation at a time is executed,
         /// which is important when interfacing with the camera). If two operations, e.g. setting a value and capturing an image, would
         /// be performed at the same time, the program would crash, because gPhoto2 can only do one thing at a time).
 		/// </param>
-		private CameraConfiguration(string configurationName, GPhoto2IpcWrapper gPhoto2IpcWrapper)
+		internal CameraConfiguration(string configurationName, GPhoto2IpcWrapper gPhoto2IpcWrapper)
 		{
             // Stores the all information about the configuration for later use
             this.Name = configurationName;

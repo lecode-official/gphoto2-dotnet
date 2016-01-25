@@ -50,7 +50,7 @@ namespace SamplesApplication
 				}
                 
                 // Gets all camera configuration and prints them out
-                foreach (CameraConfiguration cameraConfiguration in await camera.GetConfigurationAsync())
+                foreach (CameraConfiguration cameraConfiguration in await camera.GetSupportedConfigurationAsync())
                     Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}: {1}", await cameraConfiguration.GetLabelAsync(), await cameraConfiguration.GetValueAsync()));
             }
 			catch (CameraException exception)

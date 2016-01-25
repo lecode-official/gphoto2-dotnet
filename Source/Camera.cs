@@ -263,9 +263,19 @@ namespace System.Devices
         /// is in "Manual" mode than when the camera is in "Auto" mode).
         /// </summary>
         /// <returns>Returns a list of all the configuration settings of the camera.</returns>
-        public Task<IEnumerable<CameraConfiguration>> GetConfigurationAsync()
+        public Task<IEnumerable<CameraConfiguration>> GetSupportedConfigurationAsync()
         {
             return CameraConfiguration.GetCameraConfigurationsAsync(this.gPhoto2IpcWrapper);
+        }
+        
+        /// <summary>
+        /// Gets the configuration setting for the specified name. It is not guaranteed that a configuration with the specified name exists.
+        /// </summary>
+        /// <param name="configurationName">The name of the configuration that is to be retrieved.</param>
+        /// <returns>Returns the configuration with the specified name.</returns>
+        public Task<CameraConfiguration> GetConfigurationAsync(string configurationName)
+        {
+            return Task.FromResult(new CameraConfiguration(configurationName, this.gPhoto2IpcWrapper));
         }
         
         #endregion
@@ -350,7 +360,7 @@ namespace System.Devices
         public async Task<int> GetIsoSpeedAsync()
         {
             // Gets the ISO speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration isoSpeedCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.IsoSpeed);
             if (isoSpeedCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the ISO speed is not supported by this camera");
@@ -378,7 +388,7 @@ namespace System.Devices
         public async Task SetIsoSpeedAsync(int isoSpeed)
         {
             // Gets the ISO speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration isoSpeedCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.IsoSpeed);
             if (isoSpeedCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the ISO speed is not supported by this camera");
@@ -407,7 +417,7 @@ namespace System.Devices
         public async Task<IEnumerable<int>> GetSupportedIsoSpeedsAsync()
         {
             // Gets the ISO speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration isoSpeedCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.IsoSpeed);
             if (isoSpeedCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the ISO speed is not supported by this camera");
@@ -430,7 +440,7 @@ namespace System.Devices
         public async Task<TimeSpan> GetShutterSpeedAsync()
         {
             // Gets the shutter speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration shutterSpeedCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.ShutterSpeed);
             if (shutterSpeedCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the shutter speed is not supported by this camera");
@@ -475,7 +485,7 @@ namespace System.Devices
         public async Task SetShutterSpeedAsync(TimeSpan shutterSpeed)
         {
             // Gets the shutter speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration shutterSpeedCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.ShutterSpeed);
             if (shutterSpeedCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the shutter speed is not supported by this camera");
@@ -523,7 +533,7 @@ namespace System.Devices
         public async Task<IEnumerable<TimeSpan>> GetSupportedShutterSpeedsAsync()
         {
             // Gets the shutter speed camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration shutterSpeedCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.ShutterSpeed);
             if (shutterSpeedCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the shutter speed is not supported by this camera");
@@ -565,7 +575,7 @@ namespace System.Devices
         public async Task<double> GetApertureAsync()
         {
             // Gets the aperture camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration apertureCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.Aperture);
             if (apertureCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the aperture is not supported by this camera");
@@ -587,7 +597,7 @@ namespace System.Devices
         public async Task SetApertureAsync(double aperture)
         {
             // Gets the aperture camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration apertureCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.Aperture);
             if (apertureCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the aperture is not supported by this camera");
@@ -613,7 +623,7 @@ namespace System.Devices
         public async Task<IEnumerable<double>> GetSupportedAperturesAsync()
         {
             // Gets the aperture camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration apertureCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.Aperture);
             if (apertureCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the aperture is not supported by this camera");
@@ -636,7 +646,7 @@ namespace System.Devices
         public async Task<string> GetOwnerNameAsync()
         {
             // Gets the owner name camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration ownerNameCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.OwnerName);
             if (ownerNameCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the owner name is not supported by this camera");
@@ -655,7 +665,7 @@ namespace System.Devices
         public async Task SetOwnerNameAsync(string name)
         {
             // Gets the owner name camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration ownerNameCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.OwnerName);
             if (ownerNameCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the owner name is not supported by this camera");
@@ -674,7 +684,7 @@ namespace System.Devices
         public async Task<string> GetManufacturerAsync()
         {
             // Gets the manufacturer camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration manufacturerCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.Manufacturer);
             if (manufacturerCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the camera manufacturer is not supported by this camera");
@@ -697,7 +707,7 @@ namespace System.Devices
         public async Task<string> GetCameraModelAsync()
         {
             // Gets the camera model configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration cameraModelCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.CameraModel);
             if (cameraModelCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the camera model is not supported by this camera");
@@ -716,7 +726,7 @@ namespace System.Devices
         public async Task<string> GetLensNameAsync()
         {
             // Gets the lens name camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration lensNameCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.LensName);
             if (lensNameCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the lens name is not supported by this camera");
@@ -735,7 +745,7 @@ namespace System.Devices
         public async Task<string> GetBatteryLevelAsync()
         {
             // Gets the battery level camera configuration and checks if it exists, if it does not exist, then an exception is thrown
-            IEnumerable<CameraConfiguration> configuration = await this.GetConfigurationAsync();
+            IEnumerable<CameraConfiguration> configuration = await this.GetSupportedConfigurationAsync();
             CameraConfiguration batteryLevelCameraConfiguration = configuration.FirstOrDefault(c => c.Name == CameraConfigurations.BatteryLevel);
             if (batteryLevelCameraConfiguration == null)
                 throw new CameraException("The camera configuration for the battery level is not supported by this camera");
