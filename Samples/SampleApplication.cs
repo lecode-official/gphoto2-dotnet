@@ -53,36 +53,63 @@ namespace SamplesApplication
             for (int i = 0; i < samples.Count(); i++)
                 Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0}. {1}", i + 1, samples.ElementAt(i).Title));
             
-            // Starts the REPL loop
-            while (true)
+            // Since the connection to the camera via USB can be highly volatile, exceptions can be raised all the time, therefore all calls to the
+            // gPhoto2.NET should be wrapped in try-catch-clauses
+            Camera camera = null;
+            try
             {
-                // Gets the input from the users
-                Console.Write("gPhoto2.NET > ");
-                string input = Console.ReadLine();
+                // Gets the first camera attached to the system
+                camera = (await Camera.GetCamerasAsync()).FirstOrDefault();
                 
-                // Parses the input, if the user typed in exit, then the application is shutdown
-                if (input.ToUpperInvariant() == "EXIT")
-                    break;
+                // Checks if a camera was found, if no camera was found, then an error message is printed out and the program is quit
+                if (camera == null)
+                {
+                    Console.WriteLine("No camera detected!");
+                    return;
+                }
+                
+                // Starts the REPL loop
+                while (true)
+                {
+                    // Gets the input from the users
+                    Console.Write("gPhoto2.NET > ");
+                    string input = Console.ReadLine();
+                    
+                    // Parses the input, if the user typed in exit, then the application is shutdown
+                    if (input.ToUpperInvariant() == "EXIT")
+                        break;
 
-                // Parses the input, if it was a number, then the corresponding sample is executed
-                int sampleNumber;
-                if (!int.TryParse(input, NumberStyles.None, CultureInfo.InvariantCulture, out sampleNumber))
-                {
-                    // The sample number could not be parsed, therefore an error message is printed out
-                    Console.WriteLine("Please enter the number of the sample or 'exit' to quit the application.");
-                    continue;
+                    // Parses the input, if it was a number, then the corresponding sample is executed
+                    int sampleNumber;
+                    if (!int.TryParse(input, NumberStyles.None, CultureInfo.InvariantCulture, out sampleNumber))
+                    {
+                        // The sample number could not be parsed, therefore an error message is printed out
+                        Console.WriteLine("Please enter the number of the sample or 'exit' to quit the application.");
+                        continue;
+                    }
+                    
+                    // Tries to get the specified sample and execute it, if it could not be found then an error message is printed out
+                    try
+                    {
+                        ISample sampleToExecute = samples.ElementAt(sampleNumber - 1);
+                        await sampleToExecute.ExecuteAsync(camera);
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "A sample with the number {0} could not be found.", sampleNumber));
+                    }
                 }
-                
-                // Tries to get the specified sample and execute it, if it could not be found then an error message is printed out
-                try
-                {
-                    ISample sampleToExecute = samples.ElementAt(sampleNumber - 1);
-                    await sampleToExecute.ExecuteAsync();
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "A sample with the number {0} could not be found.", sampleNumber));
-                }
+            }
+            catch (CameraException exception)
+            {
+                // If an exception was caught, e.g. because the camera was unplugged, an error message is printed out
+                Console.WriteLine(string.Concat("An error occurred:", Environment.NewLine, exception.Details));
+            }
+            finally
+            {
+                // If a camera was acquired, then it is safely disposed of
+                if (camera != null)
+                    camera.Dispose();
             }
         }
         

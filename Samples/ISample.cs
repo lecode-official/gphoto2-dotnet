@@ -1,6 +1,7 @@
 
 #region Using Directives
 
+using System.Devices;
 using System.Threading.Tasks;
 
 #endregion
@@ -26,7 +27,8 @@ namespace SamplesApplication
         /// <summary>
         /// Executes the sample.
         /// </summary>
-        Task ExecuteAsync();
+        /// <param name="camera">The camera with which the sample is to be executed.</param>
+        Task ExecuteAsync(Camera camera);
         
         #endregion
     }
