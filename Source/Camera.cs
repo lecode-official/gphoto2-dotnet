@@ -439,11 +439,8 @@ namespace System.Devices
         /// If the camera configuration is not supported by the camera or the shutter speed could not be retrieved properly, then a
         /// <see cref="CameraException"/> exception is thrown.
         /// </exception>
-        /// <returns>
-        /// Returns the current shutter speed of the camera. A shutter speed of <c>TimeSpan.MaxValue</c> means Bulb mode, where the camera exposes
-        /// the image for as long as the release is pressed.
-        /// </returns>
-        public async Task<TimeSpan> GetShutterSpeedAsync()
+        /// <returns>Returns the current shutter speed of the camera.</returns>
+        public async Task<ShutterSpeed> GetShutterSpeedAsync()
         {
             // Gets the shutter speed camera configuration
             CameraConfiguration shutterSpeedCameraConfiguration = await this.GetConfigurationAsync(CameraConfigurations.ShutterSpeed);
@@ -454,28 +451,31 @@ namespace System.Devices
                 // Gets the textual representation of the shutter speed
                 string currentShutterSpeedTextualRepresentation = await shutterSpeedCameraConfiguration.GetValueAsync();
                 
-                // Checks if the ISO speed is set to Bulb, if so then TimeSpan.MaxValue is returned, otherwise the shutter speed is converted to a TimeSpan and returned
-                if (currentShutterSpeedTextualRepresentation.ToUpperInvariant() == "BULB")
-                {
-                    return TimeSpan.MaxValue;
-                }
-                else
-                {
-                    // Parses the shutter speed, the shutter speed is either specified as floating point number of seconds or as a fraction of seconds
-                    if (currentShutterSpeedTextualRepresentation.Contains("/"))
-                    {
-                        string[] fractionElements = currentShutterSpeedTextualRepresentation.Split('/');
-                        if (fractionElements.Length < 2)
-                            throw new CameraException("The shutter speed could not be properly retrieved for an unknown reason.");
-                        double numerator = int.Parse(fractionElements[0], CultureInfo.InvariantCulture);
-                        double denominator = int.Parse(fractionElements[1], CultureInfo.InvariantCulture);
-                        return TimeSpan.FromSeconds(numerator / denominator);
-                    }
-                    else
-                    {
-                        return TimeSpan.FromSeconds(double.Parse(currentShutterSpeedTextualRepresentation, CultureInfo.InvariantCulture));
-                    }
-                }
+                // Converts the textual representation of the shutter speed into a shutter speed object and returns it
+                return new ShutterSpeed(currentShutterSpeedTextualRepresentation);
+            }
+            catch (CameraException exception)
+            {
+                throw new CameraException("The camera configuration for the shutter speed is not supported by this camera.", exception);
+            }
+        }
+        
+        /// <summary>
+        /// Sets the shutter speed of the camera.
+        /// </summary>
+        /// <param name="shutterSpeed">The shutter speed to which the camera is to be set.</param>
+        /// <exception cref="CameraException">
+        /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
+        /// </exception>
+        public async Task SetShutterSpeedAsync(ShutterSpeed shutterSpeed)
+        {
+            // Gets the shutter speed camera configuration
+            CameraConfiguration shutterSpeedCameraConfiguration = await this.GetConfigurationAsync(CameraConfigurations.ShutterSpeed);
+            
+            // Tries to set the shutter speed
+            try
+            {
+                await shutterSpeedCameraConfiguration.SetValueAsync(shutterSpeed.TextualRepresentation);
             }
             catch (CameraException exception)
             {
@@ -501,33 +501,14 @@ namespace System.Devices
             // Gets all the choices and converts them to TimeSpans, which is needed to determine the correct value for the shutter speed to set
             try
             {
-                Dictionary<TimeSpan, string> supportedShutterSpeeds = new Dictionary<TimeSpan, string>();
-                foreach (string choice in await shutterSpeedCameraConfiguration.GetChoicesAsync())
-                {
-                    if (choice.ToUpperInvariant() == "BULB")
-                    {
-                        supportedShutterSpeeds.Add(TimeSpan.MaxValue, choice);
-                    }
-                    else if (choice.Contains("/"))
-                    {
-                        string[] fractionElements = choice.Split('/');
-                        if (fractionElements.Length < 2)
-                            throw new CameraException("The shutter speed could not be properly set for an unknown reason.");
-                        double numerator = double.Parse(fractionElements[0], CultureInfo.InvariantCulture);
-                        double denominator = double.Parse(fractionElements[1], CultureInfo.InvariantCulture);
-                        supportedShutterSpeeds.Add(TimeSpan.FromTicks(Convert.ToInt64(numerator / denominator * 1000000L)), choice);
-                    }
-                    else
-                    {
-                        supportedShutterSpeeds.Add(TimeSpan.FromSeconds(double.Parse(choice, CultureInfo.InvariantCulture)), choice);
-                    }
-                }
+                // Gets all supported shutter speeds
+                IEnumerable<ShutterSpeed> supportedShutterSpeeds = await this.GetSupportedShutterSpeedsAsync();
                 
                 // Chooses the correct shutter speed value from the available choices and sets it, if the shutter speed could not be detected,
                 // then an exception is thrown
-                if (!supportedShutterSpeeds.ContainsKey(shutterSpeed))
+                if (!supportedShutterSpeeds.Any(speed => speed.Speed == shutterSpeed))
                     throw new CameraException(string.Format(CultureInfo.InvariantCulture, "The shutter speed {0} is not supported by the camera.", shutterSpeed));
-                await shutterSpeedCameraConfiguration.SetValueAsync(supportedShutterSpeeds[shutterSpeed]);
+                await shutterSpeedCameraConfiguration.SetValueAsync(supportedShutterSpeeds.FirstOrDefault(speed => speed.Speed == shutterSpeed).TextualRepresentation);
             }
             catch (CameraException exception)
             {
@@ -541,42 +522,16 @@ namespace System.Devices
         /// <exception cref="CameraException">
         /// If the camera configuration is not supported by the camera, then a <see cref="CameraException"/> exception is thrown.
         /// </exception>
-        /// <returns>
-        /// Returns a list of all the shutter speeds that are supported by the camera. A shutter speed of <c>TimeSpan.MaxValue</c> means that the
-        /// camera is set Bulb mode, where the camera exposes the image for as long as the release is pressed.
-        /// </returns>
-        public async Task<IEnumerable<TimeSpan>> GetSupportedShutterSpeedsAsync()
+        /// <returns>Returns a list of all the shutter speeds that are supported by the camera.</returns>
+        public async Task<IEnumerable<ShutterSpeed>> GetSupportedShutterSpeedsAsync()
         {
             // Gets the shutter speed camera configuration
             CameraConfiguration shutterSpeedCameraConfiguration = await this.GetConfigurationAsync(CameraConfigurations.ShutterSpeed);
             
-            // Gets all the choices, converts them to TimeSpans and returns them
+            // Gets all the choices, converts them to ShutterSpeed objects and returns them
             try
             {
-                List<TimeSpan> supportedShutterSpeeds = new List<TimeSpan>();
-                foreach (string choice in await shutterSpeedCameraConfiguration.GetChoicesAsync())
-                {
-                    if (choice.ToUpperInvariant() == "BULB")
-                    {
-                        supportedShutterSpeeds.Add(TimeSpan.MaxValue);
-                    }
-                    else if (choice.Contains("/"))
-                    {
-                        string[] fractionElements = choice.Split('/');
-                        if (fractionElements.Length < 2)
-                            throw new CameraException("The shutter speed could not be properly retrieved for an unknown reason.");
-                        double numerator = double.Parse(fractionElements[0], CultureInfo.InvariantCulture);
-                        double denominator = double.Parse(fractionElements[1], CultureInfo.InvariantCulture);
-                        supportedShutterSpeeds.Add(TimeSpan.FromTicks(Convert.ToInt64(numerator / denominator * 1000000L)));
-                    }
-                    else
-                    {
-                        supportedShutterSpeeds.Add(TimeSpan.FromSeconds(double.Parse(choice, CultureInfo.InvariantCulture)));
-                    }
-                }
-                
-                // Returns the list of shutter speeds supported by the camera
-                return supportedShutterSpeeds;
+                return (await shutterSpeedCameraConfiguration.GetChoicesAsync()).Select(shutterSpeed => new ShutterSpeed(shutterSpeed));
             }
             catch (CameraException exception)
             {
