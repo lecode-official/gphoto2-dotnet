@@ -2,6 +2,8 @@
 
 ![gPhoto2.NET Logo](https://github.com/lecode-official/gphoto2-dotnet/blob/master/Documentation/Images/Banner.png "gPhoto2.NET Logo")
 
+Have a look at this native binding: [Camera Sharp](https://gitlab.com/define-private-public/SharpCamera)
+
 ## Introduction
 
 gPhoto2.NET is an easy-to-use .NET wrapper for the popular gPhoto2. It can be used to easily interface with DSLRs or other types of cameras from a
